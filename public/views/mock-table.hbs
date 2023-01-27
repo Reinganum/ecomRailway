@@ -1,0 +1,55 @@
+<div>
+    {{#unless items.length}}
+            <h1 class="title">THERE ARE NO ITEMS TO DISPLAY</h1>
+    {{/unless}}
+    {{#if items.length}}
+    <h1 class="title">ITEM'S LIST</h1>
+    <table class="product-table">
+        <tr>
+            <th>Title</th>
+            <th>Price</th>
+            <th>Thumbnail</th>
+        </tr>
+    <div class="entry">
+    </div>
+    {{#each items}}
+    <tr>
+        <td>{{this.title}}</td>
+        <td>{{this.price}}</td>
+        <td><img height="100px" width="100px" src={{this.thumbnail}}/></td>
+    </tr>
+    {{/each}}
+    {{/if}}
+    </table>
+</div>
+
+<a href="/"><button>Return to form</button></a>
+
+<style>
+    table,
+    th,
+    td {
+        border: 1px solid;
+        text-align: center;
+    }
+
+    .product-table{
+        background-color: white;
+        width: 80%;
+        margin: auto;
+    }
+
+    .title{
+        text-align: center;
+        font-size: 46px;
+    }
+    button{
+        background-color: black;
+        color: white;
+        border-radius: 12px;
+        padding: 12px;
+        margin-top: 10px;
+        margin-left: 46.5%;
+    }
+
+</style>

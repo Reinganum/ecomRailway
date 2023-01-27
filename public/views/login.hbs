@@ -1,0 +1,65 @@
+<h1>LOGIN</h1>
+<div class="formContainer">
+    <form action="/api/user/login" method="post">
+        <label for="">EMAIL</label>
+        <input type="email" id="email" name="email" placeholder="john@doe.com">
+        <label for="password">PASSWORD</label>
+        <input type="password" name="password" id="email">
+        <button id="updateBtn" class="submitBtn">login</button>
+    </form>
+</div>
+<style>
+    body{
+        background-color: black;
+    }
+    h1{
+        text-align: center;
+        color: white;
+    }
+    .formContainer{
+        display: flex;
+        margin: auto;
+        flex: column;
+        width: 500px;
+        height: fit-content;
+        background: linear-gradient(127deg, rgba(242,235,235,1) 6%, rgba(181,8,43,1) 89%, rgba(186,8,8,0.6643032212885154) 100%, rgba(0,212,255,1) 100%);
+        border-radius: 24px;
+        align-items: center;
+        justify-content: center;
+    }
+    input{
+        display: block;
+        margin: auto;
+        padding: 1rem;
+    }
+    ::placeholder {
+   text-align: center; 
+}
+    label{
+        margin-top: 10px;
+    display: block;
+    text-align: center;
+    line-height: 150%;
+    font-size: 1em;
+    font-weight: bold;
+
+    }
+
+    .button{
+        background-color: white;
+        color: white;
+        padding: 1rem;
+        margin-top: 10px;
+        color: black;
+        margin-left: 46%;
+    }
+
+    .submitBtn{
+        margin-left: 70px;
+        background-color: black;
+        color: white;
+        padding: 0.8rem;
+        margin-top: 15px;
+        border-radius: 12px;
+    }
+</style>

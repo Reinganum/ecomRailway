@@ -22,7 +22,6 @@ const productSchema=new mongoose.Schema({
     },
     category:{
         type:String, 
-        required:true,
     },
     quantity:{
         type:Number,
@@ -30,6 +29,16 @@ const productSchema=new mongoose.Schema({
         thumbnails:{
             type:Array,
         }
+    },
+    ratings:[
+        {
+            star:Number,
+            postedBy:{type:mongoose.Schema.Types.ObjectId, ref:"User"}
+        }
+    ],
+    totalRating:{ 
+        type:String,// puede ser number o string
+        default:0,
     }
 },
 {timestamps:true})
