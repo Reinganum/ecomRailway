@@ -5,6 +5,11 @@ let price=document.getElementById('price')
 let thumbnail=document.getElementById('thumbnail')
 let submitItem=document.getElementById('submitBtn')
 
+// filtering products
+
+const selectPrice=document.getElementById('selectPrice')
+const priceRange=document.getElementById('priceRange')
+
 // DOM PRODUCT CARDS
 
 let productContainer=document.getElementById("productContainer")
@@ -20,7 +25,9 @@ let cartId=document.getElementById("cartId")
 let productId=document.getElementById("productId")
 let addToCart=document.getElementById("addToCart")
 
-// FORMULARIO DE INGRESO DE PRODUCTOS 
+
+// RENDER CART
+
 
 async function renderCart(data){
     console.log(data)
@@ -35,7 +42,6 @@ cart.addEventListener('click',async()=>{
         const fetchData=await fetch('/api/cart/')
         const cart=await fetchData.json()
         if(cart){
-            console.log(cart)
             productContainer.innerHTML=await renderCart(await cart)
         if(cart.products.length>0){
             let buttonsCollection=document.getElementsByClassName('removeProductCart')
@@ -86,18 +92,42 @@ cart.addEventListener('click',async()=>{
                 }); 
         })
     }
-        } 
+  } 
+  const placeOrder=document.getElementById("placeOrder")
+  placeOrder.addEventListener('click',()=>{
+    const cartId={
+      "cartId":placeOrder.className
+  }
+    fetch('api/cart/buy', {
+      method: 'POST', 
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(cartId),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data)
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });   
+  })
     } catch (error){
         console.log(error)
     }
 })
 
 
+
 // TARJETAS DE PRODUCTOS //
 
 displayProductsBtn.addEventListener('click',async()=>{
     try{
-        const fetchData=await fetch('/api/product/')
+        console.log(priceRange.value)
+        const queryStr=(!(selectPrice.value==="nf"))?`/api/product?price[${selectPrice.value}]=${priceRange.value}`:'/api/product/'
+        console.log(queryStr)
+        const fetchData=await fetch(`${queryStr}`)
         const products=await fetchData.json()
         productContainer.innerHTML=await renderProducts(await products)
         if(products.length>0){

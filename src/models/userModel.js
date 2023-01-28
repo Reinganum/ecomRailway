@@ -33,6 +33,10 @@ const userSchema=new mongoose.Schema({
         type:Boolean,
         default:false
     },
+    avatar:{
+        type:String,
+        default:"incognito.jpg",
+    },
     cart:{
         type:Array,
         default:[]

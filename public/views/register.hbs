@@ -1,11 +1,19 @@
-<h1>LOGIN</h1>
+<h1>REGISTER NEW USER</h1>
 <div class="formContainer">
-    <form action="/login" method="post">
-        <label for="">EMAIL</label>
-        <input type="email" id="email" name="email" placeholder="john@doe.com">
+    <form action="/api/user/register" method="post">
+        <label for="firstname">FIRST NAME</label>
+        <input type="text" id="firstname" name="firstname" placeholder="John">
+        <label for="title">LAST NAME</label>
+        <input type="text" name="lastname" placeholder="Doe" id="lastname">
+        <label for="email">EMAIL</label>
+        <input type="email" name="email" id="email" placeholder="john@doe.com"/>
+        <label for="mobile">MOBILE</label>
+        <input type="text" id="mobile" name="mobile" placeholder="+56939056445"/>
         <label for="password">PASSWORD</label>
-        <input type="password" name="password" id="email">
-        <button id="updateBtn" class="submitBtn">login</button>
+        <input type="password" id="password" name="password"/>
+        <label for="confirmpassword">CONFIRM PASSWORD</label>
+        <input type="password" id="confirmPassword" name="confirmpassword"/>
+        <button type="submit" class="submitBtn">Update Item</button>
     </form>
 </div>
 <style>
@@ -55,7 +63,7 @@
     }
 
     .submitBtn{
-        margin-left: 70px;
+        margin-left: 50px;
         background-color: black;
         color: white;
         padding: 0.8rem;

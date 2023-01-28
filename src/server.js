@@ -25,7 +25,7 @@ db()
 // body parser middleware
 
 app.use(express.json())
-app.use(express.urlencoded({extended:false}))
+app.use(express.urlencoded({extended:true}))
 app.use(cookieParser())
 
 // passport
@@ -35,7 +35,7 @@ app.use(session({
     resave:true,
     saveUninitialized:true,
 }))
-passportInit
+app.use(passport.session())
 
 // HANDLEBARS
 app.engine('.hbs', engine({
@@ -43,8 +43,8 @@ app.engine('.hbs', engine({
 }));
 app.set('view engine', 'hbs');
 app.set('views',process.cwd()+'/public/views')
-app.use(express.static('public/views'))
 app.use(express.static('public'))
+app.use(express.static('public/views'))
 
 // SESSION 
 
@@ -58,7 +58,7 @@ app.use('/', mainRouter)
 // main routes 
 app.get('*', (req, res) => {
     const { url, method } = req
-    logger.warn(`The Route ${method} ${url} has not been created`)
+    logger.error();(`The Route ${method} ${url} has not been created`)
     res.send(`The following route ${method} ${url} does not exist`)
   })
   

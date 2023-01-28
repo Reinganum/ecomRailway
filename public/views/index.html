@@ -9,11 +9,22 @@
     <link href="https://fonts.googleapis.com/css2?family=Abel&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
     <script src="https://kit.fontawesome.com/1586ef086c.js" crossorigin="anonymous"></script>
+    <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon"> 
 </head>
 <body>
     <i id="cart" class="fa-solid fa-cart-shopping fa-3x"></i>
-    <div id="container"></div>
-    <button id="displayProductsBtn">DISPLAY PRODUCTS</button>
+    <div id="container">
+        <label for="">Choose price range:</label>
+        <select id="selectPrice" name="price">
+            <option value="nf">no filter</option>
+            <option value="lt">less than</option>
+            <option value="lte">less or equal to</option>
+            <option value="gte">equal or greater than</option>
+            <option value="gt">greater than</option>
+        </select>
+        <input type="text" id="priceRange">
+        <button id="displayProductsBtn">DISPLAY PRODUCTS</button>
+    </div>
     <div id="productContainer">
     </div>
     <script src="main.js"></script>

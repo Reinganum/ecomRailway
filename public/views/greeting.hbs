@@ -1,0 +1,13 @@
+{{#if name}}
+<div>	
+	<h1>Welcome {{name}}!</h1>
+</div>
+{{/if}}
+<img src={{avatar}}>
+<div>
+    <form action="uploadfile" enctype="multipart/form-data" method="POST">
+        <input type="file" name="myFile">
+        <input type="submit" value="Upload avatar">
+    </form>
+</div>
+<button id={{name}} class="avatar">logout</button>

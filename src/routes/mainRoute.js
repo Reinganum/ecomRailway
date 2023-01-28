@@ -2,29 +2,32 @@ const express=require('express')
 const router=express.Router()
 const {auth}=require('../middlewares/auth')
 const passport=require('passport')
+const upload=require('../controller/uploadController')
+const { checkAuthenticated } = require('../middlewares/passport')
+const fs=require('fs')
+const { saveAvatar } = require('../controller/avatarController')
+const { loginUser } = require('../controller/userController')
 
 router.get('/',(req,res)=>res.render('register'))
 router.get('/login', (req,res)=>res.render('login'))
-router.get('/dashboard',auth,(req,res)=>{
-    try{
-        const name=req.user.firstname
-        res.render('greeting',{name:name})
+router.post('/uploadFile',checkAuthenticated, upload.single('myFile'),(req,res)=>{
+     const file = req.file;
+     saveAvatar(req.user.id,`../uploads/${file.filename}`)
+     if (!file) {
+        return res.status(400).send('Could not upload file: no file');
     }
-    catch(error){
-        res.status(500).send(`could not logout, error: ${error}`)
-    }
-}
-)
+    res.redirect('/dashboard')
+})
+router.post('/login', 
+  passport.authenticate('local', { failureRedirect: '/login' }),loginUser,
+  function(req, res) {
+    res.redirect('/dashboard');
+  });
 
-// inner files, reemplazar todo cuando avance con react
+router.get('/dashboard',checkAuthenticated,(req,res)=>{
+    const name=req.user.firstname
+    const avatar=`../uploads/${req.user.avatar}`
+    res.render("greeting",{name,avatar})
+})
 
-router.get('/index',(req,res)=>{
-    res.sendFile(process.cwd()+'/public/views/html/index.html')
-})
-router.get('/styles',(req,res)=>{
-    res.sendFile(process.cwd()+'/public/views/styles/styles.css')
-})
-router.get('/js',(req,res)=>{
-    res.sendFile(process.cwd()+'/public/views/js/index.js')
-})
 module.exports=router;

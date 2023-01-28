@@ -3,33 +3,33 @@ const User=require('../models/userModel')
 const Cart=require('../models/cartModel')
 const asyncHandler=require('express-async-handler');
 const validateMongoDBID = require('../utils/validateMongoDbID');
+const sendMsg = require('./twilioController');
+const config = require('../config/twilio');
+const sendEmail = require('./emailController');
 
-const cartUser=asyncHandler(async(req,res)=>{
-    const {cart}=req.body;
-    console.log(req.user)
+const sendCart=asyncHandler(async(req,res)=>{
+    const {cartId}=req.body;
     try{
-        /*
-        let products=[]
-        const user=await User.findById(_id)
-        const cartExists=await Cart.findOne({buyer:user._id})
-        if(cartExists){
-            cartExists.remove()
+        const cart=await Cart.findById(cartId)
+        const body=`¡Hola ${req.user.firstname}, te notificamos que la compra de ${cart.products} por un total de ${cart.cartTotal} fue aprobada y ya va en camino!`
+        const msg={
+            from: 'whatsapp:+14155238886',
+            body: body,
+            to:'whatsapp:+56939056445'
+          }
+        const emailBody={
+            to:req.user.email,
+            text:`Hello ${req.user.firstname},you have placed an order for ${cart.products} for a total of ${cart.cartTotal}!`,
+            subject:"Welcome to the eCommerce",
         }
-        for (let i=0;i<cart.length;i++){
-            let object={}
-            object.product=cart[i]._id
-            object.count=cart[i].count
-            let getPrice=await Product.findById(cart[i]._id).select("price").exec()
-            object.price=getPrice.price
-            products.push(object)
-        }
-    res.send(products)*/
-        res.send(req.user)
+        sendEmail(emailBody)
+        sendMsg(msg)
+        res.send({success:true})
     } catch (error){
         throw new Error(error)
     }
 })
 
 module.exports={
-    cartUser,
+    sendCart,
 }

@@ -3,7 +3,6 @@ const passport=require('passport')
 const LocalStrategy=require('passport-local').Strategy
 const User=require('../models/userModel')
 const bcrypt=require('bcrypt')
-const signRefreshToken = require('../config/refreshJWT')
 
 // CHECK AUTHENTICATION MIDDLEWARE
 
@@ -25,12 +24,12 @@ const validatePassword = (user, password) => {
 
 // PASSPORT INITIALIZATION
 
-    const portInit=(req,res,next)=>{
+    const passportInit=(req,res,next)=>{
         passport.serializeUser((user,done)=>{
             done(null,user.id)
         })
         passport.deserializeUser(async(id,done)=>{
-            const user=await User.getById(id)
+            const user=await User.findById(id)
             done(null,user)
         })
         passport.use('local',
@@ -48,8 +47,10 @@ const validatePassword = (user, password) => {
                     if(!validatePassword(findUser,password))return done(null)
                     const userData={
                         id:findUser._id,
+                        name:findUser.firstname,
                         email:findUser.email,
-                        cart:findUser.cart
+                        cart:findUser.cart,
+                        avatar:findUser.avatar
                     }
                     done(null,userData)
                 } catch (error){
@@ -58,9 +59,8 @@ const validatePassword = (user, password) => {
                 
     })))}
 
-    const passportInit=portInit()
+    passportInit()
            
  module.exports={
-    passportInit,
     checkAuthenticated
 }
