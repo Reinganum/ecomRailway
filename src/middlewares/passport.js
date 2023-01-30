@@ -38,6 +38,7 @@ const validatePassword = (user, password) => {
                 usernameField:'email',
                 passwordField:'password',
                 passReqToCallback:true,
+                session:true,
             },
              asyncHandler(async(req,email,password,done)=>{
                 if(!email|!password)console.log("insufficient data for validation")
@@ -56,7 +57,6 @@ const validatePassword = (user, password) => {
                 } catch (error){
                     throw new Error(error)
                 }
-                
     })))}
 
     passportInit()

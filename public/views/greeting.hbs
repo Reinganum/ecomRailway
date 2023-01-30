@@ -9,5 +9,12 @@
         <input type="file" name="myFile">
         <input type="submit" value="Upload avatar">
     </form>
+    <a href="/">BROWSE PRODUCTS AND CART</a>
 </div>
-<button id={{name}} class="avatar">logout</button>
+<button id="button">logout</button>
+<script>
+    const button=document.getElementById('button')
+    button.addEventListener('click',()=>{
+    location.href='/logout'
+})
+</script>

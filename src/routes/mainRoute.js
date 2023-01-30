@@ -8,7 +8,7 @@ const fs=require('fs')
 const { saveAvatar } = require('../controller/avatarController')
 const { loginUser } = require('../controller/userController')
 
-router.get('/',(req,res)=>res.render('register'))
+router.get('/register',(req,res)=>res.render('register'))
 router.get('/login', (req,res)=>res.render('login'))
 router.post('/uploadFile',checkAuthenticated, upload.single('myFile'),(req,res)=>{
      const file = req.file;
@@ -28,6 +28,12 @@ router.get('/dashboard',checkAuthenticated,(req,res)=>{
     const name=req.user.firstname
     const avatar=`../uploads/${req.user.avatar}`
     res.render("greeting",{name,avatar})
+})
+
+router.get('/logout',(req,res)=>{
+  console.log(req)
+  req.session.destroy();
+  res.send({msg:"User logged out"})
 })
 
 module.exports=router;

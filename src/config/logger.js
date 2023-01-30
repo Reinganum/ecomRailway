@@ -1,36 +1,25 @@
 const pino=require('pino')
-const parseArgs = require('minimist');
-const options={
-    alias:{
-        p:'port',
-        l:'prod' // logger: production or development
-    } 
+const args=require('./argsConfig')
+const path=require('path')
+require('dotenv').config({path:'.env'})
+
+let logger=null
+
+if (args.l==="prod"){
+    console.log("logger initialized in production mode")
+    logger=pino(
+      {
+        level:'error',
+      },
+      pino.destination(`${__dirname}/../logs/error.log`)
+    );
+} else {
+  console.log("logger initialized in development mode")
+  logger=pino(
+    {
+      level:process.env.PINO_LOG_LEVEL,
+    },
+  );
 }
-const arg=parseArgs(process.argv.slice(2),options);
-const mode=arg.l;
-
-function buildProdLogger() {
-  // registro de nivel warn a warn.log
-    const prodLogger = pino('warn.log')
-    prodLogger.level = 'warn'
-    return prodLogger
-  }
-
-function buildDevLogger() {
-  // registrar todo por consola
-    const devLogger = pino()
-    devLogger.level = 'info'
-    return devLogger
-  }
-
-  let logger = null
-
-  if (mode === 'prod') {
-    logger = buildProdLogger()
-    console.log("inicializado con logger de produccion")
-  } else {
-    logger = buildDevLogger()
-    console.log("inicializado con logger de desarrollo")
-  }
   
 module.exports=logger

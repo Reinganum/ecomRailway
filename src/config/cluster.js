@@ -1,5 +1,6 @@
 const cluster=require('cluster')
-const args = require('./argsConfig')
+const args = require('./argsConfig');
+const logger = require('./logger');
 const cpus=require('os').cpus()
 const PORT=args.p||process.env.PORT||8080;
 
@@ -8,11 +9,11 @@ const PORT=args.p||process.env.PORT||8080;
 const runServer=(app,args)=>{
     if(args?.m!=='cluster'){
     app.listen(PORT,()=>{
-        console.log("servidor en un nucleo")
-        console.log(`SERVIDOR ON ${PORT} - PID ${process.pid} `)
+        logger.info("server running in one core")
+        logger.info(`SERVIDOR ON ${PORT} - PID ${process.pid} `)
     })
 } else {
-    console.log("servidor inicializado en modo CLUSTER")
+    logger.info("server running in cluster mode")
     if(cluster.isPrimary){
         const lengthCpu=cpus.length
         for (let index = 0; index < lengthCpu; index++) {
@@ -20,7 +21,7 @@ const runServer=(app,args)=>{
         }
     }else{
         app.listen(PORT,()=>{
-            console.log(`SERVIDOR ON ${PORT} - PID ${process.pid} `)
+            logger.info(`SERVER RUNNING ON ${PORT} - PID ${process.pid} `)
         })
     }
 }}

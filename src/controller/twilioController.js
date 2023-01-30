@@ -1,14 +1,15 @@
 const twilio=require('twilio')
 const config=require('../config/twilio')
 const asyncHandler=require('express-async-handler')
+const logger = require('../config/logger')
 const clientTwilio=twilio(config.token,config.pass)
 
 const sendMsg=asyncHandler(async(msg,)=>{
     try{
         const msgSent=await clientTwilio.messages.create(msg)
-        console.log(msgSent)
+        logger.info(msgSent)
     }catch(error){
-        throw new Error(error)
+        logger.error(`Error sending Twilio messag ${error}`)
     }
 })
 

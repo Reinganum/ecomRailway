@@ -1,5 +1,6 @@
 const dotenv=require('dotenv').config()
 const { default: mongoose } = require("mongoose")
+const logger = require('./logger')
 
 const dbConnect=()=>{
     try{
@@ -9,9 +10,9 @@ const dbConnect=()=>{
                  dbName: process.env.MONGO_DB_NAME
             }
         )
-        console.log(`connected to MongoDB`)
+        logger.info(`connected to MongoDB`)
     } catch (error){
-        console.log(`db connection error: ${error}`)
+        logger.error(`db connection error: ${error}`)
     }
 }
 

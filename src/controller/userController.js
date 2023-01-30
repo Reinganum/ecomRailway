@@ -9,6 +9,7 @@ const crypto=require('crypto')
 const Product=require('../models/productModel')
 const Cart=require('../models/cartModel');
 const { findOne } = require('../models/userModel');
+const logger = require('../config/logger');
 
 // REGISTER USER 
 
@@ -28,7 +29,7 @@ const createUser=asyncHandler(async(req,res)=>{
         res.redirect('/login')
     } else {
         // email is used, user already exists
-        throw new Error('User already exists')
+        logger.info('User not created, email already in database')
     }
 });
 
@@ -59,7 +60,7 @@ const loginUser=asyncHandler(async (req,res)=>{
         })*/
         res.redirect('/dashboard')
     } else {
-        throw new Error ("invalid login")
+        logger.info("invalid login")
     }
 })
 
@@ -74,7 +75,7 @@ const handleRefreshToken=asyncHandler(async(req,res)=>{
     if(!user)throw new Error('no user matches refresh token in Database')
     jwt.verify(refreshToken,process.env.JWT_SECRET, (error, decoded)=>{
         if (error || decoded.id !== user.id){
-            throw new Error('error in refresh token')
+            logger.warn('error in refresh token')
         } else {
             const accessToken=generateToken(user?._id)
             res.json({accessToken})
@@ -88,7 +89,8 @@ const logout=asyncHandler(async(req,res)=>{
     const cookie=req.cookies
     if(!cookie?.refreshToken)throw new Error('there is no refresh token in cookies')
     const refreshToken=cookie.refreshToken
-    const user=await User.findOne({refreshToken})
+    try{
+        const user=await User.findOne({refreshToken})
     if(!user){
         res.clearCookie('refreshToken',{httpOnly:true,secure:true})
         return res.sendStatus(403); 
@@ -98,6 +100,9 @@ const logout=asyncHandler(async(req,res)=>{
     })
     res.clearCookie('refreshToken',{httpOnly:true,secure:true})
     res.sendStatus(204); 
+    } catch (error){
+        logger.error(`error with refresh token: ${error}`)
+    }
 })
 
 // All users
@@ -107,7 +112,7 @@ const getAllUsers=asyncHandler(async(req,res)=>{
         const getUsers=await User.find();
         res.json(getUsers)
     } catch (error){
-        throw new Error(error)
+        logger.error(`Could not get users ${error}`)
     }
 })
 
@@ -120,7 +125,7 @@ const getUserById=asyncHandler(async(req,res)=>{
         const getUser=await User.findById(id)
         res.json(getUser)
     }catch (error){
-        throw new Error(error)
+        logger.error(`Could not get user ${error}`)
     }
 })
 
@@ -133,7 +138,7 @@ const deleteUserById=asyncHandler(async(req,res)=>{
         const deleteUser=await User.findByIdAndDelete(id)
         res.json(deleteUser)
     }catch (error){
-        throw new Error(error)
+        logger.error(`Could not delete user ${error}`)
     }
 })
 
@@ -155,7 +160,7 @@ const updateUserById=asyncHandler(async(req,res)=>{
             )
             res.json(updatedUser)
     } catch (error) {
-        throw new Error(error)
+        logger.error(`Could not update user ${error}`)
     }
 }) 
 
@@ -176,7 +181,7 @@ const blockUser=asyncHandler(async(req,res,next)=>{
             message:`${block}`    
         })  
     }catch(error){
-        throw new Error(error)
+        logger.error(`Could not handle block user ${error}`)
     }
 })
 
@@ -197,7 +202,7 @@ const unblockUser=asyncHandler(async(req,res,next)=>{
             message:`${unblock}`    
         })
     }catch(error){
-        throw new Error(error)
+        logger.error(`Could not handle unblock user ${error}`)
     }
 })
 
@@ -207,13 +212,17 @@ const updatePassword=asyncHandler(async(req,res)=>{
     const {_id}=req.user
     const {password}=req.body
     validateMongoDBID(_id)
-    const user=await User.findById(_id)
-    if(password){
-        user.password=password
-        const updatedPassword=await user.save()
-        res.json(updatedPassword)
-    } else {
-        res.json(user)
+    try{
+        const user=await User.findById(_id)
+        if(password){
+            user.password=password
+            const updatedPassword=await user.save()
+            res.json(updatedPassword)
+        } else {
+            res.json(user)
+        }
+    }catch(error){
+        logger.error(`Could not update password ${error}`)
     }
 })
 
@@ -236,7 +245,7 @@ const forgotPasswordToken=asyncHandler(async(req,res)=>{
         sendEmail(data)
         res.json(token)
     }catch(error){
-        throw new Error(error)
+        logger.error(`Error in lost password token function ${error}`)
     }
 })
 
@@ -244,17 +253,21 @@ const resetPassword=asyncHandler(async(req,res)=>{
     const {password}=req.body;
     const {token}=req.params;
     const hashedToken=crypto.createHash('sha256').update(token).digest('hex')
-    const user=await User.findOne({
-        passwordResetToken:hashedToken,
-        passwordResetExpires:{$gt:Date.now()} // revisar si el token no ha expirado 
-    })
-    if (!user) throw new Error('Token expired, please try with a new token')
-    user.password=password
-    user.passwordResetToken=undefined
-    user.passwordResetExpires=undefined
-    user.passwordChangedAt=Date.now()
-    await user.save()
-    res.json(user)  
+    try{
+        const user=await User.findOne({
+            passwordResetToken:hashedToken,
+            passwordResetExpires:{$gt:Date.now()} // revisar si el token no ha expirado 
+        })
+        if (!user) logger.info('Token expired, please try with a new token')
+        user.password=password
+        user.passwordResetToken=undefined
+        user.passwordResetExpires=undefined
+        user.passwordChangedAt=Date.now()
+        await user.save()
+        res.json(user)  
+    } catch(error){
+        logger.error(`Error in reset passworld functionality: ${error}`)
+    }
 })
 
 // traer wishlist del usuario
@@ -265,7 +278,7 @@ const getWishList=asyncHandler(async(req,res)=>{
         const user=await User.findById(_id).select('Wishlist') // asi o populate?
         res.json(user)
     } catch(error){
-        throw new Error(error)
+        logger.error(`Could not retrieve user wishlist ${error}`)
     }
 })
 /*
@@ -314,6 +327,9 @@ let user=await User.findByIdAndUpdate(_id,
     }
 )
 */
+
+// ADD TO CART 
+
 const addToCart=asyncHandler(async(req,res)=>{
     const {cart}=req.body
     const {_id}=req.user
@@ -364,22 +380,24 @@ const addToCart=asyncHandler(async(req,res)=>{
             }
         } 
     }catch(error){
-        throw new Error(error)
+        logger.error(`Error in the add to cart functionality ${error}`)
     }
 })
+
+
+// GET USERS CART
 
 const getUserCart=asyncHandler(async(req,res)=>{
     const {_id}=req.user
     try{
         const cart=await Cart.findOne({buyer:_id}).populate("products.product")
         if(cart){
-            console.log(cart)
             let cartTotal=0;
             for (let i=0;i<cart.products.length;i++){
                 cartTotal=cartTotal+cart.products[i].price*cart.products[i].quantity;
             }
             newCart=await Cart.findByIdAndUpdate(cart._id,{cartTotal:cartTotal})
-            console.log("cart updated in every sense")
+            logger.info("cart updated succesfully")
             res.json(newCart)
         } else {
             let products=[]
@@ -389,30 +407,32 @@ const getUserCart=asyncHandler(async(req,res)=>{
                 cartTotal,
                 buyer:_id
             }).save()
-            console.log('new cart created')
+            logger.info('new cart created')
             res.json(newCart)
         }
     }catch(error){
-        throw new Error(error)
+        logger.error(`error in getting user cart funcionality ${error}`)
     }
 })
+
+// EMPTY AND REMOVE CART
 
 const emptyCart=asyncHandler(async(req,res)=>{
     const {_id}=req.user;
     try{
-        console.log("DELETE CALLED")
         const user=await User.findById(_id)
         const cart=await Cart.findOneAndRemove({buyer:user._id})
         res.json(cart)
     }catch(error){
-        throw new Error(error)
+        logger.error(`error in removing cart ${error}`)
     }
 })
+
+// REMOVE PRODUCT FROM CART
 
 const removeFromCart=asyncHandler(async(req,res)=>{
     const {product}=req.body
     const {_id}=req.user
-    console.log("REMOVE FROM CART CALLED SUCCESFULLY!!!!!!!!!!!!!!!!!")
     try{
         /*
         {
@@ -434,7 +454,7 @@ const removeFromCart=asyncHandler(async(req,res)=>{
     )
     res.json(userCart)
     } catch(error){
-        throw new Error(error)
+        logger.error(`Error removing product from cart ${error}`)
     }
 })
 

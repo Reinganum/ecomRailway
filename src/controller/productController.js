@@ -2,6 +2,7 @@ const Product=require('../models/productModel')
 const asyncHandler=require('express-async-handler')
 const slugify=require('slugify')
 const User=require('../models/userModel')
+const logger = require('../config/logger')
 
 // CREATE NEW PRODUCT
 
@@ -13,7 +14,7 @@ const createProduct=(asyncHandler(async(req,res)=>{
         const newProduct=await Product.create(req.body)
         res.json(newProduct)
     }catch(error){
-        throw new Error(`error getting products: ${error}`)
+        logger.error(`error creating new product: ${error}`)
     }
 }))
 
@@ -59,7 +60,7 @@ const getAllProducts=asyncHandler(async(req,res)=>{
         const product=await query;
         res.json(product)
     } catch (error){
-        throw new Error(error)
+        logger.error(`Error getting or querying products: ${error}`)
     }
 })
 
@@ -71,7 +72,7 @@ const getProduct=asyncHandler(async(req,res)=>{
         const product=await Product.findById(id)
         res.json(product)
     }catch (error){
-        throw new Error(`${error} ahora parece que error de linea 75`)
+        logger.error(`Could not get the requested product: ${error}`)
     }
 })
 
@@ -87,7 +88,7 @@ const updateProduct=asyncHandler(async(req,res)=>{
         console.log(product)
         res.json(product)
     }catch(error){
-        throw new Error(`${error} el error de linea 90`)
+        logger.error(`Product could not be updated: ${error}`)
     }
 })
 
@@ -99,7 +100,7 @@ const deleteProductById=asyncHandler(async(req,res)=>{
         const deleteProduct=await Product.findByIdAndDelete(id)
         res.json(deleteProduct)
     }catch (error){
-        throw new Error(`${error} ahora parece que error de linea 102`)
+        logger.error(`Product could not be deleted: ${error}`)
     }
 })
 
@@ -133,7 +134,7 @@ const addToWishlist=asyncHandler(async (req,res)=>{
             res.json(user)
         }
     } catch (error){
-        throw new Error(`${error} ahora parece que error de linea 128`)
+        logger.error(`Product not updated in user wishlist: ${error}`)
     } 
 })
 
@@ -176,7 +177,7 @@ const rating = asyncHandler(async(req,res)=>{
         let updatedProduct=await Product.findByIdAndUpdate(prodId, {totalRating:actualRating},{new:true})
         res.json(updatedProduct)
     } catch (error){
-        throw new Error(error)
+        logger.error(`Error scoring product: ${error}`)
     }
     
 })

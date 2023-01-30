@@ -10,7 +10,6 @@ const sendEmail=asyncHandler(async(data,req,res)=>{
             pass: process.env.EMAIL_PASSWORD
         }
     });
-    
       // send mail with defined transport object
       let info = await transporter.sendMail({
         from: data.from, // sender address
@@ -21,9 +20,8 @@ const sendEmail=asyncHandler(async(data,req,res)=>{
       });
 })
 
-
 /*
-datos mail a ENV
+datos mail ENV
 
 EMAIL_NAME=Tomasa Klocko
 EMAIL_USERNAME=tomasa.klocko84@ethereal.email
