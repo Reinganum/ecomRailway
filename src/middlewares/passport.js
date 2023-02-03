@@ -3,15 +3,17 @@ const passport=require('passport')
 const LocalStrategy=require('passport-local').Strategy
 const User=require('../models/userModel')
 const bcrypt=require('bcrypt')
+const logger = require('../config/logger')
+
 
 // CHECK AUTHENTICATION MIDDLEWARE
 
 const checkAuthenticated=(req,res,next)=>{
     if (req.isAuthenticated()){
-        console.log("login has been authenticated")
+        logger.info("login has been authenticated")
         return next();
     } else{
-        console.log("login unauthorized")
+        logger.info("login unauthorized")
         res.send("login to view the page")
     }
 }
@@ -25,6 +27,7 @@ const validatePassword = (user, password) => {
 // PASSPORT INITIALIZATION
 
     const passportInit=(req,res,next)=>{
+        console.log("function called")
         passport.serializeUser((user,done)=>{
             done(null,user.id)
         })
@@ -41,6 +44,7 @@ const validatePassword = (user, password) => {
                 session:true,
             },
              asyncHandler(async(req,email,password,done)=>{
+                console.log("function called 2")
                 if(!email|!password)console.log("insufficient data for validation")
                 try{
                     const findUser=await User.findOne({email})

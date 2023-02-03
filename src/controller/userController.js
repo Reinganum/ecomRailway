@@ -58,6 +58,7 @@ const loginUser=asyncHandler(async (req,res)=>{
             email:findUser?.email,
             token:generateToken(findUser?._id)
         })*/
+        logger.info("login successful")
         res.redirect('/dashboard')
     } else {
         logger.info("invalid login")
@@ -458,6 +459,13 @@ const removeFromCart=asyncHandler(async(req,res)=>{
     }
 })
 
+// logout user 
+
+const logoutUser=(req,res)=>{
+    req.session.destroy();
+    res.send({msg:"User logged out"})}
+
+
 module.exports={
     createUser,
     loginUser, 
@@ -477,4 +485,5 @@ module.exports={
     getUserCart,
     emptyCart,
     removeFromCart,
+    logoutUser,
 };
