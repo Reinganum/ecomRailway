@@ -10,6 +10,11 @@
     "prod":"nodemon ./src/server.js -l prod",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "nodemonConfig": {
+    "ignore": [
+      "/*.json"
+    ]
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

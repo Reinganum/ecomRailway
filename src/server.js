@@ -15,11 +15,15 @@ const session=require('express-session')
 const passport = require('passport');
 const args = require('./config/argsConfig');
 const runServer = require('./config/cluster');
-const {engine} = require('express-handlebars')
+const {engine} = require('express-handlebars');
+// borrar despues
+const fs=require('fs')
+const path=require('path');
+const Repo = require('./repository/repository');
 
 // connection to MongoDB
 
-db()
+//db()
 
 // body parser middleware
 
@@ -28,7 +32,7 @@ app.use(express.urlencoded({extended:true}))
 app.use(cookieParser())
 
 // passport
-app.use(session({
+/*app.use(session({
     store:Mongostore.create({
         mongoUrl:process.env.MONGO_URI,
         mongoOptions:{useNewUrlParser:true,useUnifiedTopology:true},
@@ -43,14 +47,9 @@ app.use(session({
         maxAge: 60000
     }
 }))
+*/
 app.use(passport.initialize())
-/*app.use(session({
-    secret:process.env.JWT_SECRET,
-    resave:true,
-    saveUninitialized:true,
-}))*/
 app.use(passport.session())
-
 
 // HANDLEBARS
 app.engine('.hbs', engine({
@@ -85,5 +84,7 @@ app.use(notFound)
 // CORRER SERVIDOR EN UN NUCLEO O CLUSTER
 
 runServer(app,args)
+
+
 
 
