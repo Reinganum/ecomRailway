@@ -6,8 +6,9 @@
   "scripts": {
     "start": "node ./src/server.js",
     "dev": "nodemon ./src/server.js",
-    "cluster":"nodemon ./src/server.js -m cluster",
-    "prod":"nodemon ./src/server.js -l prod",
+    "cluster": "nodemon ./src/server.js -m cluster",
+    "prod": "nodemon ./src/server.js -l prod",
+    "fs":"nodemon ./src/server.js -s fs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "nodemonConfig": {
@@ -37,6 +38,7 @@
     "passport-local": "^1.0.0",
     "pino": "^8.8.0",
     "slugify": "^1.6.5",
+    "socket.io": "^4.6.0",
     "twilio": "^3.84.1"
   }
 }

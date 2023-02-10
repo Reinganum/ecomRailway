@@ -6,12 +6,14 @@ const PORT=args.p||process.env.PORT||8080;
 
 // CORRER SERVIDOR EN CLUSTER O UN NUCLEO
 
+
 const runServer=(app,args)=>{
     if(args?.m!=='cluster'){
-    app.listen(PORT,()=>{
+    const httpServer=app.listen(PORT,()=>{
         logger.info("server running in one core")
         logger.info(`SERVIDOR ON ${PORT} - PID ${process.pid} `)
     })
+    return httpServer
 } else {
     logger.info("server running in cluster mode")
     if(cluster.isPrimary){
@@ -24,7 +26,8 @@ const runServer=(app,args)=>{
             logger.info(`SERVER RUNNING ON ${PORT} - PID ${process.pid} `)
         })
     }
-}}
+}
+}
 
 module.exports=runServer
 

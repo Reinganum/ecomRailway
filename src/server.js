@@ -16,14 +16,11 @@ const passport = require('passport');
 const args = require('./config/argsConfig');
 const runServer = require('./config/cluster');
 const {engine} = require('express-handlebars');
-// borrar despues
-const fs=require('fs')
-const path=require('path');
-const Repo = require('./repository/repository');
-
+const {newUser,changeUser,newMessage,newItem}=require('./controller/chatController')
+const Repo=require('./repository/repository')
 // connection to MongoDB
 
-//db()
+db()
 
 // body parser middleware
 
@@ -32,7 +29,7 @@ app.use(express.urlencoded({extended:true}))
 app.use(cookieParser())
 
 // passport
-/*app.use(session({
+app.use(session({
     store:Mongostore.create({
         mongoUrl:process.env.MONGO_URI,
         mongoOptions:{useNewUrlParser:true,useUnifiedTopology:true},
@@ -47,7 +44,7 @@ app.use(cookieParser())
         maxAge: 60000
     }
 }))
-*/
+
 app.use(passport.initialize())
 app.use(passport.session())
 
@@ -81,9 +78,31 @@ app.get('*', (req, res) => {
 app.use(errorHandler)
 app.use(notFound)
 
-// CORRER SERVIDOR EN UN NUCLEO O CLUSTER
+const httpServer=runServer(app,args)
+const { Server } = require("socket.io");
+const io = new Server(httpServer)
 
-runServer(app,args)
+io.on('connection', async (socket)=>{
+    newUser(socket,io)
+
+    socket.on('msg',(newMsg)=>{
+        newMessage(socket,io,newMsg)
+    })
+
+    socket.on('change-user',(newName)=>{
+        changeUser(socket,io,newName)
+    })
+
+    socket.emit('items', await Repo.Prods.getAll())
+
+    socket.on('typing',(user)=>{
+        socket.broadcast.emit('typing',user)
+    })
+    socket.on('newItem',(itemData)=>{
+        newItem(socket,io,itemData)
+    })
+})
+
 
 
 

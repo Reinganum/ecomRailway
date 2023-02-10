@@ -36,7 +36,7 @@ class FilesystemDAO{
             arrProductos.push(obj)
             let nuevoArr=arrProductos
             await fs.promises.writeFile(this.file,JSON.stringify(nuevoArr))
-            this.getAll()
+            return console.log(this.DTO(obj))
         }
         catch (error){
             logger.info(`error, no se pudo agregar objeto: ${error}`)
@@ -45,7 +45,16 @@ class FilesystemDAO{
     async getById(id){
         try{
             let objects=await this.getAll()
-            return objects.find(object=>((object).id)===(id))
+            return objects.find((obj)=>{return obj.id==id})
+        }
+        catch(error){
+            logger.info(`error, could not get Id: ${error}`)
+        }
+    }
+    async getBySocketID(socketID){
+        try{
+            let objects=await this.getAll()
+            return objects.find((obj)=>{return obj.socketID==socketID})
         }
         catch(error){
             logger.info(`error, could not get Id: ${error}`)
@@ -55,12 +64,23 @@ class FilesystemDAO{
         try{
             let objects=await this.getAll()
             const objectIndex=object.findIndex((obj)=>obj.id==id)
-            if(objectIndex===-1)return {error:true}
             objects[objectIndex].nickname=newData.name;
             await fs.promises.writeFile(this.file,JSON.stringify(items))
         } catch(error){
             logger.info(`error, could not update object: ${error}`)
         }
+    }
+    async updateNickname(newData,id){
+        try{
+            let users=await this.getAll()
+            if( await users){
+                let userIndex=users.findIndex((user)=>{return user.id==parseInt(id)})
+                users[userIndex].nickname=newData
+                await fs.promises.writeFile(this.file,JSON.stringify(users))
+            }
+        } catch(error){
+            logger.info(`error, could not update nickname: ${error}`)
+        }   
     }
     async deleteById(id){
         try{
@@ -81,5 +101,7 @@ class FilesystemDAO{
         }
     }
 }
+
+
 
 module.exports=FilesystemDAO;

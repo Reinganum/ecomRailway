@@ -1,7 +1,8 @@
-const { msgAsDTO, prodAsDTO } = require("../DTO/DTO")
+const { msgAsDTO, prodAsDTO,chatUserAsDTO } = require("../DTO/DTO")
 
 let ProductDaoInstance=null
 let MessageDaoInstance=null
+let ChatUserDaoInstance=null
 
 class MessageDaoSingleton {
     static MessageDaoInstance
@@ -23,7 +24,20 @@ class ProductDaoSingleton {
         return ProductDaoInstance
     }
 }
+
+class ChatUserDaoSingleton {
+    static ChatUserDaoInstance
+    static getInstance=(DAO)=>{
+        if(!ChatUserDaoInstance)
+            console.log('la clase no existia')
+            ChatUserDaoInstance=new DAO(process.env.CHATUSER_STORAGE_NAME, chatUserAsDTO)
+        console.log('la clase ya existe')
+        return ChatUserDaoInstance
+    }
+}
+
 module.exports={
     MessageDaoSingleton,
-    ProductDaoSingleton
+    ProductDaoSingleton,
+    ChatUserDaoSingleton,
 }

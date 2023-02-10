@@ -12,6 +12,9 @@ class Repository {
     getById(id){
         return this.DAO.getById(id)
     }
+    getBySocketID(socketID){
+        return this.DAO.getBySocketID(socketID)
+    }
     save(newObject){
         return this.DAO.save(newObject)
     }
@@ -24,11 +27,16 @@ class Repository {
     updateById( id, updateObject){
         return this.DAO.updateById(id, updateObject)
     }
+    updateNickname(newData,id){
+        return this.DAO.updateNickname(newData,id)
+    }
 }
 
 const MessageRepo=new Repository(DAO.messages)
 const ProductRepo=new Repository(DAO.products)
+const ChatuserRepo=new Repository(DAO.chatuser)
 module.exports={
     Msgs:MessageRepo,
-    Prods:ProductRepo
+    Prods:ProductRepo,
+    Usr:ChatuserRepo
 }

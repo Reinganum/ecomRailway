@@ -1,8 +1,6 @@
 class MessageDTO {
-    constructor({username,timestamp,text}){
-        this.username=username
-        this.timestamp=timestamp
-        this.text=text
+    constructor({msg}){
+        this.msg=msg
     }
 }
 class ProductDTO {
@@ -12,6 +10,14 @@ class ProductDTO {
         this.stock=stock
         this.thumbnail=thumbnail
         this.description=description
+    }
+}
+
+class ChatUserDTO{
+    constructor({socketID,nickname,time}){
+        this.socketID=socketID
+        this.nickname=nickname
+        this.time=time
     }
 }
 function msgAsDTO(msg){
@@ -26,9 +32,17 @@ function prodAsDTO(prod){
     }
     return new ProductDTO(prod)
 }
+function chatUserAsDTO(user){
+    if(Array.isArray(user)){
+        return prod.map(user=> new ChatUserDTO(user))
+    }
+    return new ChatUserDTO(user)
+}
+
 
 module.exports={
     msgAsDTO,
-    prodAsDTO
+    prodAsDTO,
+    chatUserAsDTO
 }
 

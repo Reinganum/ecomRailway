@@ -5,6 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Application</title>
+    <script src="/socket.io/socket.io.js"></script>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Abel&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
@@ -26,6 +27,19 @@
         <button id="displayProductsBtn">DISPLAY PRODUCTS</button>
     </div>
     <div id="productContainer">
+    </div>
+    <div id="chat-container">
+        <div id="chat-window">
+
+        </div>
+        <div id="chat-events">
+        </div>
+        <input type="text" id="message" class="hidden" placeholder="Type your message here!">
+        <input type="text" id="nickname" placeholder="set nickname or email" maxlength="25">
+        <div id="btnContainer">
+            <button id="send" class="hidden">send</button>
+            <button id="nicknameBtn">set name</button>
+        </div>
     </div>
     <script src="main.js"></script>
 </body>
