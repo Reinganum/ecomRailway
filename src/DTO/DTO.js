@@ -34,7 +34,7 @@ function prodAsDTO(prod){
 }
 function chatUserAsDTO(user){
     if(Array.isArray(user)){
-        return prod.map(user=> new ChatUserDTO(user))
+        return user.map(user=> new ChatUserDTO(user))
     }
     return new ChatUserDTO(user)
 }

@@ -15,14 +15,18 @@ class MemoryStorageDAO {
     getBySocketID(socketID){
         try{
             let objects=this.getAll()
-            return objects.find((obj)=>{return obj.socketID==socketID})
+            let objectFound=objects.find((obj)=>{return obj.socketID==socketID})
+            return objectFound
         }
         catch(error){
             logger.info(`error, could not get Id: ${error}`)
         }
     }
     save(newObject){
+        let nuevoId=(this.objectArray.length)+1
+        newObject.id=nuevoId;
         this.objectArray.push(newObject)
+        console.log(this.DTO(this.objectArray))
         return this.DTO(newObject)
     }
     deleteById(id){
@@ -40,9 +44,14 @@ class MemoryStorageDAO {
         return updatedObject
     }
     updateNickname(newData,id){
-        const index=this.#getByIndex(id)
-        this.objectArray[index]={...this.object[index],...newData}
-        return this.objectArray[index]
+        let users=this.getAll()
+            if(users){
+                let userIndex=users.findIndex((user)=>{return user.id==parseInt(id)})
+                console.log("newData")
+                console.log(newData)
+                users[userIndex].nickname=newData
+                return(users[userIndex])
+            }
     }
 }
 

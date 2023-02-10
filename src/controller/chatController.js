@@ -19,7 +19,7 @@ const newUser=async(socket,io)=>{
 const changeUser=async(socket,io,newName)=>{
     const user = await Users.getBySocketID(socket.id)
     const userID=user.id
-    console.log(newName.name)
+    console.log(user)
     await Users.updateNickname(newName.name,userID) 
     const allUsers=await Users.getAll()
     io.sockets.emit('allUsers',allUsers)
