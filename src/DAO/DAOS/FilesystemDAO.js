@@ -1,14 +1,14 @@
 const fs = require('fs')
 const path=require('path')
-const logger = require('../config/logger')
+const logger = require('../../config/logger')
 
 
 class FilesystemDAO{
     constructor(file,DTO) {
         try {
+            this.DTO=DTO
             if (fs.existsSync(path.join(process.cwd(), `./src/DB/${file}.json`))===false){
                 this.createdAt=Date.now().toLocaleString
-                this.DTO=DTO
                 this.file = path.join(process.cwd(), `./src/DB/${file}.json`)
                 fs.writeFileSync(this.file, '[]')
             } else {
@@ -36,7 +36,7 @@ class FilesystemDAO{
             arrProductos.push(obj)
             let nuevoArr=arrProductos
             await fs.promises.writeFile(this.file,JSON.stringify(nuevoArr))
-            return console.log(this.DTO(obj))
+            return this.DTO(obj)
         }
         catch (error){
             logger.info(`error, no se pudo agregar objeto: ${error}`)
@@ -45,56 +45,59 @@ class FilesystemDAO{
     async getById(id){
         try{
             let objects=await this.getAll()
-            return objects.find((obj)=>{return obj.id==id})
+            let foundObject=objects.find((obj)=>{return obj.id==id})
+            if(foundObject===undefined){
+                return {error:"this ID is invalid or object is not found"}
+            }
+            return foundObject
         }
         catch(error){
-            logger.info(`error, could not get Id: ${error}`)
+            logger.info(`error, could not get object with requested Id: ${error}`)
         }
     }
-    async getBySocketID(socketID){
+    async updateById( id, update){
         try{
+            console.log(id)
             let objects=await this.getAll()
-            return objects.find((obj)=>{return obj.socketID==socketID})
-        }
-        catch(error){
-            logger.info(`error, could not get Id: ${error}`)
-        }
-    }
-    async updateById(newData,id){
-        try{
-            let objects=await this.getAll()
-            const objectIndex=object.findIndex((obj)=>obj.id==id)
-            objects[objectIndex].nickname=newData.name;
-            await fs.promises.writeFile(this.file,JSON.stringify(items))
+            const index=objects.findIndex((obj)=>obj.id==id)
+            if(index===-1){
+                return {error:"this ID is invalid or object is not found"}
+            }
+            const updatedObject={...objects[index],...update}
+            objects[index]=updatedObject
+            await fs.promises.writeFile(this.file,JSON.stringify(objects))
+            return updatedObject
         } catch(error){
             logger.info(`error, could not update object: ${error}`)
         }
     }
-    async updateNickname(newData,id){
-        try{
-            let users=await this.getAll()
-            if( await users){
-                let userIndex=users.findIndex((user)=>{return user.id==parseInt(id)})
-                users[userIndex].nickname=newData
-                await fs.promises.writeFile(this.file,JSON.stringify(users))
-            }
-        } catch(error){
-            logger.info(`error, could not update nickname: ${error}`)
-        }   
-    }
     async deleteById(id){
         try{
             let objects=await this.getAll()
-            let index=objects.findIndex(obj=>obj.id===id)
+            let index=await objects.findIndex(obj=>obj.id==id)
+            if(index===-1){
+                return {error:"this ID is invalid or object is not found"}
+            }
             const [removedObject]=objects.splice(index,1)
+            for (let i=index;i<objects.length;i++){
+                objects[i].id-=1
+            }
             await fs.promises.writeFile(this.file,JSON.stringify(objects))
+            return removedObject
         } catch(error){
             logger.info(`error, could not delete object: ${error}`)
         }   
     }
     async deleteAll(){
         try{
+            const arr=await fs.promises.readFile(this.file,"utf-8")
+            const arrObj=JSON.parse(arr)
+            const deletedObjects=arrObj.length
             await fs.promises.writeFile(this.file, '[]')
+            return {
+                "acknowledged": true,
+                "deletedCount": deletedObjects
+            }
         }
         catch(error){
             logger.info(`error, could not delete objects: ${error}`)

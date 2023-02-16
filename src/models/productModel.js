@@ -20,6 +20,9 @@ const productSchema=new mongoose.Schema({
         type:Number,
         required:true,
     },
+    thumbnail:{
+        type:String,
+    },
     category:{
         type:String, 
     },

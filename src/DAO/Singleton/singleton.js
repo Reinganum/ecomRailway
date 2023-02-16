@@ -1,4 +1,7 @@
-const { msgAsDTO, prodAsDTO,chatUserAsDTO } = require("../DTO/DTO")
+const { msgAsDTO, prodAsDTO,chatUserAsDTO } = require("../../DTO/DTO")
+const messageModel=require('../../models/messageModel')
+const productModel = require("../../models/productModel")
+const chatuserModel=require('../../models/chatuserModel')
 
 let ProductDaoInstance=null
 let MessageDaoInstance=null
@@ -8,9 +11,7 @@ class MessageDaoSingleton {
     static MessageDaoInstance
     static getInstance=(DAO)=>{
         if(!MessageDaoInstance)
-            console.log('la clase no existia')
-            MessageDaoInstance=new DAO(process.env.MESSAGES_STORAGE_NAME, msgAsDTO)
-        console.log('la clase ya existe')
+            MessageDaoInstance=new DAO(process.env.MESSAGES_STORAGE_NAME, msgAsDTO, messageModel)
         return MessageDaoInstance
     }
 }
@@ -18,9 +19,7 @@ class ProductDaoSingleton {
     static ProductDaoInstance
     static getInstance=(DAO)=>{
         if(!ProductDaoInstance)
-            console.log('la clase no existia')
-            ProductDaoInstance=new DAO(process.env.PRODUCTS_STORAGE_NAME, prodAsDTO)
-        console.log('la clase ya existe')
+            ProductDaoInstance=new DAO(process.env.PRODUCTS_STORAGE_NAME, prodAsDTO,productModel)
         return ProductDaoInstance
     }
 }
@@ -29,9 +28,7 @@ class ChatUserDaoSingleton {
     static ChatUserDaoInstance
     static getInstance=(DAO)=>{
         if(!ChatUserDaoInstance)
-            console.log('la clase no existia')
-            ChatUserDaoInstance=new DAO(process.env.CHATUSER_STORAGE_NAME, chatUserAsDTO)
-        console.log('la clase ya existe')
+            ChatUserDaoInstance=new DAO(process.env.CHATUSER_STORAGE_NAME, chatUserAsDTO,chatuserModel)
         return ChatUserDaoInstance
     }
 }

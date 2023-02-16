@@ -18,11 +18,11 @@ const newUser=async(socket,io)=>{
 
 const changeUser=async(socket,io,newName)=>{
     const user = await Users.getBySocketID(socket.id)
-    const userID=user.id
-    console.log(user)
+    let userID=0
+    Array.isArray(user)?userID=user[0].id:userID=user.id    
     await Users.updateNickname(newName.name,userID) 
     const allUsers=await Users.getAll()
-    io.sockets.emit('allUsers',allUsers)
+    io.sockets.emit('allUsers',allUsers)   
 }
 
 const userDisconnected = async(socket,io)=>{

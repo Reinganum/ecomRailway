@@ -1,14 +1,15 @@
 const express=require('express')
-const { createProduct, getAllProducts, getProduct, updateProduct, addToWishlist, deleteProductById, rating} = require('../controller/productController')
+const { deleteAllProducts,createProduct, getAllProducts, getProduct, updateProduct, addToWishlist, deleteProductById, rating} = require('../controller/productController')
 const router=express.Router()
 const {auth,isAdmin}=require('../middlewares/auth')
+const productValidation = require('../utils/validateJoi')
 
-router.post('/', auth, isAdmin, createProduct)
-router.get('/:id', getProduct)
+router.post('/',productValidation, createProduct)
 router.put('/wishlist',auth, addToWishlist)
 router.put('/rating',auth,rating)
-router.put('/:id', auth, isAdmin, updateProduct)
-router.delete('/:id', auth, isAdmin, deleteProductById)
+router.put('/:id', updateProduct)
+router.delete('/:id', deleteProductById)
+router.get('/:id', getProduct)
 router.get('/', getAllProducts)
-
+router.delete('/', deleteAllProducts)
 module.exports=router

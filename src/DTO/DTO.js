@@ -4,10 +4,10 @@ class MessageDTO {
     }
 }
 class ProductDTO {
-    constructor({title,price,stock,thumbnail,description}){
+    constructor({title,price,quantity,thumbnail,description}){
         this.title=title
         this.price=price
-        this.stock=stock
+        this.quantity=quantity
         this.thumbnail=thumbnail
         this.description=description
     }

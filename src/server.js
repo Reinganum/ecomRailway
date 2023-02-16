@@ -18,9 +18,14 @@ const runServer = require('./config/cluster');
 const {engine} = require('express-handlebars');
 const {newUser,changeUser,newMessage,newItem}=require('./controller/chatController')
 const Repo=require('./repository/repository')
+const cors=require('cors')
+
+app.use(cors({origin:`http://localhost:${process.env.PORT}`}))
 // connection to MongoDB
 
+const productSchema=require('./models/joiSchemas/joi') 
 db()
+
 
 // body parser middleware
 
@@ -75,8 +80,8 @@ app.get('*', (req, res) => {
   
 // error handling middlewares
 
-app.use(errorHandler)
-app.use(notFound)
+//app.use(errorHandler)
+//app.use(notFound)
 
 const httpServer=runServer(app,args)
 const { Server } = require("socket.io");
@@ -103,7 +108,4 @@ io.on('connection', async (socket)=>{
     })
 })
 
-
-
-
-
+module.exports=app

@@ -1,30 +1,38 @@
 const args = require("../config/argsConfig");
 const logger=require('../config/logger');
-const FilesystemDAO = require("./FilesystemDAO");
-const MemoryStorageDAO = require("./MemoryDAO");
-const { MessageDaoSingleton,ProductDaoSingleton,ChatUserDaoSingleton} = require("./singleton");
+const FilesystemDAO = require("./DAOS/FilesystemDAO");
+const FSmsgDAO = require("./MsgDAO/FSmsgDao");
+const MongoMsgDao=require('../DAO/MsgDAO/MongoMsgDao')
+const MemoryStorageDAO = require("./DAOS/MemoryDAO");
+const MongoDao = require("./DAOS/mongoDAO");
+const { MessageDaoSingleton,ProductDaoSingleton,ChatUserDaoSingleton} = require("./Singleton/singleton");
+const MemoryMsgDao = require("./MsgDAO/MemoryMsgDao");
 
 let DAO
 
 switch(args.s||process.env.SELECTED_DATABASE){
-    case 'Mongo': // DESARROLLAR PARA MONGO
-        console.log('factory: mongo selected') 
-        DAO='mongo selected'
+    case 'mongo': 
+        logger.info('factory: mongo selected as storage') 
+        DAO={
+            products:ProductDaoSingleton.getInstance(MongoDao),
+            messages:MessageDaoSingleton.getInstance(MongoMsgDao),
+            chatuser:ChatUserDaoSingleton.getInstance(MongoMsgDao)
+        }
         break
     case 'fs':
-        console.log('factory: filesystem selected') 
+        logger.info('factory: filesystem selected as storage') 
         DAO={
             products:ProductDaoSingleton.getInstance(FilesystemDAO),
-            messages:MessageDaoSingleton.getInstance(FilesystemDAO),
-            chatuser:ChatUserDaoSingleton.getInstance(FilesystemDAO)
+            messages:MessageDaoSingleton.getInstance(FSmsgDAO),
+            chatuser:ChatUserDaoSingleton.getInstance(FSmsgDAO)
         }
         break
     case 'mem':
-        console.log('factory: memory selected') 
+        logger.info('factory: memory selected as storage') 
         DAO={
             products:ProductDaoSingleton.getInstance(MemoryStorageDAO),
-            messages:MessageDaoSingleton.getInstance(MemoryStorageDAO),
-            chatuser:ChatUserDaoSingleton.getInstance(MemoryStorageDAO)
+            messages:MessageDaoSingleton.getInstance(MemoryMsgDao),
+            chatuser:ChatUserDaoSingleton.getInstance(MemoryMsgDao)
         }
         break
 }
@@ -33,17 +41,6 @@ class DaoFactory {
         return DAO
     }
 }
-
-
-/*
-DAO.messages.save({autor:"esto ya es con singleton"})
-messages:MessageDaoSingleton.getInstance(FilesystemDAO)
-messages:MessageDaoSingleton.getInstance(FilesystemDAO)
-messages:MessageDaoSingleton.getInstance(FilesystemDAO)
-messages:MessageDaoSingleton.getInstance(FilesystemDAO)
-messages:MessageDaoSingleton.getInstance(FilesystemDAO)
-*/
-// DAO.products.save({producto:'pantalla LED Samsung'})
 
 module.exports={
     DaoFactory,

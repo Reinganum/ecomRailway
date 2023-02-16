@@ -3,15 +3,20 @@ const asyncHandler=require('express-async-handler')
 const slugify=require('slugify')
 const User=require('../models/userModel')
 const logger = require('../config/logger')
+const Repo=require('../repository/repository')
+const Users = Repo.Usr
+const Messages=Repo.Msgs
+const Items=Repo.Prods
 
 // CREATE NEW PRODUCT
 
 const createProduct=(asyncHandler(async(req,res)=>{
+    if (req.body.title===undefined)return res.sendStatus(400)
     try{
         if(req.body.title){
             req.body.slug=slugify(req.body.title)
         }
-        const newProduct=await Product.create(req.body)
+        const newProduct=await Items.save(req.body)
         res.json(newProduct)
     }catch(error){
         logger.error(`error creating new product: ${error}`)
@@ -57,20 +62,23 @@ const getAllProducts=asyncHandler(async(req,res)=>{
             // modificar para que lleve a la ultima pagina
             if (skip>=productCount) throw new Error("page not found")
         }
-        const product=await query;
-        res.json(product)
+        // const product=await query; SORTING Y PAGINADO SOLO APLICA A MONGODB VER COMO ADAPTARLO
+        const product=await Items.getAll()
+        res.json(product).status(200)
     } catch (error){
         logger.error(`Error getting or querying products: ${error}`)
     }
 })
+
 
 // GET ONE PRODUCT
 
 const getProduct=asyncHandler(async(req,res)=>{
     const {id}=req.params
     try{
-        const product=await Product.findById(id)
-        res.json(product)
+        const product=await Items.getById(id)
+        if(product.error)return res.status(404).send(product)
+        res.json(product).status(200)
     }catch (error){
         logger.error(`Could not get the requested product: ${error}`)
     }
@@ -84,8 +92,8 @@ const updateProduct=asyncHandler(async(req,res)=>{
         if(req.body.title){
             req.body.slug=slugify(req.body.title)
         }
-        const product=await Product.findByIdAndUpdate(id,req.body,{new:true})
-        console.log(product)
+        const product=await Items.updateById(id,req.body)
+        if(product.error)return res.status(404).send(product)
         res.json(product)
     }catch(error){
         logger.error(`Product could not be updated: ${error}`)
@@ -97,10 +105,12 @@ const updateProduct=asyncHandler(async(req,res)=>{
 const deleteProductById=asyncHandler(async(req,res)=>{
     const {id}=req.params;
     try{
-        const deleteProduct=await Product.findByIdAndDelete(id)
+        const deleteProduct=await Items.deleteById(id)
+        if(deleteProduct.error) return res.status(404).send(deleteProduct)
         res.json(deleteProduct)
     }catch (error){
         logger.error(`Product could not be deleted: ${error}`)
+        res.status(406)
     }
 })
 
@@ -182,8 +192,18 @@ const rating = asyncHandler(async(req,res)=>{
     
 })
 
+const deleteAllProducts=asyncHandler(async(req,res)=>{
+    try{
+        const response = await Items.deleteAll()
+        res.json(response)
+    }catch (error){
+        logger.error(`Error scoring product: ${error}`)
+    }
+})
+
 
 module.exports={
+    deleteAllProducts,
     createProduct,
     updateProduct,
     getAllProducts,
