@@ -1,13 +1,14 @@
 const logger = require('../../config/logger')
 const FilesystemDAO=require('../DAOS/FilesystemDao')
 const fs=require('fs')
+const path=require('path')
 
 class FSmsgDAO extends FilesystemDAO {
     constructor(file,DTO) {
         super(file,DTO)
+        this.DTO=DTO
         try {
-            this.DTO=DTO
-            if (fs.existsSync(path.join(process.cwd(), `./src/DB/${nfile}.json`))===false){
+            if (fs.existsSync(path.join(process.cwd(), `./src/DB/${file}.json`))===false){
                 this.createdAt=Date.now().toLocaleString
                 this.file = path.join(process.cwd(), `./src/DB/${file}.json`)
                 fs.writeFileSync(this.file, '[]')

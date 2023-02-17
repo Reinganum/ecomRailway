@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha ./src/api.test.js",
+    "axios":"mocha ./src/axios.test.js",
     "start": "node ./src/server.js",
     "dev": "nodemon ./src/server.js",
     "cluster": "nodemon ./src/server.js -m cluster",

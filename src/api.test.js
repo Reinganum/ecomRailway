@@ -1,5 +1,4 @@
 const request = require('supertest');
-const Response = require('twilio/lib/http/response');
 const expect=require('chai').expect
 const app = require('./server');
 
@@ -57,7 +56,7 @@ describe('TESTING PRODUCT ROUTE', function(){
         const response=await request(app).post('/api/product/').send(newProduct)
         expect(response.status).to.equal(200)
     })
-    it('get all trae ambos productos',async function(){
+    it('get brings both products',async function(){
         const response=await request(app).get('/api/product/')
         expect(response.body.length).to.equal(2)
         expect(response.status).to.equal(200)
