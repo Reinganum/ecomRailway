@@ -1,4 +1,9 @@
 const express=require('express')
+// GRAPHQL
+const { graphqlHTTP } = require('express-graphql');
+const schema=require('./GraphQL/schema')
+const root=require('./GraphQL/resolver')
+//
 const app=express()
 const dotenv=require('dotenv').config()
 const db=require('./config/DBconnect');
@@ -62,6 +67,15 @@ app.set('views',process.cwd()+'/public/views')
 app.use(express.static('public'))
 app.use(express.static('public/views'))
 
+// GRAPHQL
+app.use(
+  '/graphql',
+  graphqlHTTP({
+    schema: schema,
+    rootValue: root,
+    graphiql: true,
+  })
+)
 // SESSION 
 
 // routers
@@ -71,6 +85,7 @@ app.use('/api/product', productRouter)
 app.use('/api/cart', cartRouter)
 app.use('/api/category', categoryRouter)
 app.use('/', mainRouter)
+
 // main routes 
 app.get('*', (req, res) => {
     const { url, method } = req

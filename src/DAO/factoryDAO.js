@@ -5,7 +5,7 @@ const FSmsgDAO = require("./MsgDAO/FSmsgDao");
 const MongoMsgDao=require('../DAO/MsgDAO/MongoMsgDao')
 const MemoryStorageDAO = require("./DAOS/MemoryDAO");
 const MongoDao = require("./DAOS/mongoDAO");
-const { MessageDaoSingleton,ProductDaoSingleton,ChatUserDaoSingleton} = require("./Singleton/singleton");
+const { MessageDaoSingleton,ProductDaoSingleton,ChatUserDaoSingleton,UserDaoSingleton} = require("./Singleton/singleton");
 const MemoryMsgDao = require("./MsgDAO/MemoryMsgDao");
 
 let DAO
@@ -14,6 +14,7 @@ switch(args.s||process.env.SELECTED_DATABASE){
     case 'mongo': 
         logger.info('factory: mongo selected as storage') 
         DAO={
+            users:UserDaoSingleton.getInstance(MongoDao),
             products:ProductDaoSingleton.getInstance(MongoDao),
             messages:MessageDaoSingleton.getInstance(MongoMsgDao),
             chatuser:ChatUserDaoSingleton.getInstance(MongoMsgDao)
@@ -22,6 +23,7 @@ switch(args.s||process.env.SELECTED_DATABASE){
     case 'fs':
         logger.info('factory: filesystem selected as storage') 
         DAO={
+            users:UserDaoSingleton.getInstance(FilesystemDAO),
             products:ProductDaoSingleton.getInstance(FilesystemDAO),
             messages:MessageDaoSingleton.getInstance(FSmsgDAO),
             chatuser:ChatUserDaoSingleton.getInstance(FSmsgDAO)
@@ -30,6 +32,7 @@ switch(args.s||process.env.SELECTED_DATABASE){
     case 'mem':
         logger.info('factory: memory selected as storage') 
         DAO={
+            users:UserDaoSingleton.getInstance(MemoryStorageDAO),
             products:ProductDaoSingleton.getInstance(MemoryStorageDAO),
             messages:MessageDaoSingleton.getInstance(MemoryMsgDao),
             chatuser:ChatUserDaoSingleton.getInstance(MemoryMsgDao)

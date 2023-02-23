@@ -35,8 +35,11 @@ class Repository {
 const MessageRepo=new Repository(DAO.messages)
 const ProductRepo=new Repository(DAO.products)
 const ChatuserRepo=new Repository(DAO.chatuser)
+const UserRepo=new Repository(DAO.users)
+
 module.exports={
     Msgs:MessageRepo,
     Prods:ProductRepo,
-    Usr:ChatuserRepo
+    Users:UserRepo,
+    ChatUser:ChatuserRepo
 }

@@ -4,8 +4,6 @@ const slugify=require('slugify')
 const User=require('../models/userModel')
 const logger = require('../config/logger')
 const Repo=require('../repository/repository')
-const Users = Repo.Usr
-const Messages=Repo.Msgs
 const Items=Repo.Prods
 
 // CREATE NEW PRODUCT

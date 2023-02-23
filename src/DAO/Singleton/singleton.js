@@ -1,11 +1,13 @@
-const { msgAsDTO, prodAsDTO,chatUserAsDTO } = require("../../DTO/DTO")
+const { msgAsDTO, prodAsDTO,chatUserAsDTO, userAsDTO} = require("../../DTO/DTO")
 const messageModel=require('../../models/messageModel')
 const productModel = require("../../models/productModel")
 const chatuserModel=require('../../models/chatuserModel')
+const userModel=require('../../models/userModel')
 
 let ProductDaoInstance=null
 let MessageDaoInstance=null
 let ChatUserDaoInstance=null
+let UserDaoInstance=null
 
 class MessageDaoSingleton {
     static MessageDaoInstance
@@ -33,8 +35,18 @@ class ChatUserDaoSingleton {
     }
 }
 
+class UserDaoSingleton {
+    static UserDaoInstance
+    static getInstance=(DAO)=>{
+        if(!UserDaoInstance)
+            UserDaoInstance=new DAO(process.env.USER_STORAGE_NAME, userAsDTO,userModel)
+        return UserDaoInstance
+    }
+}
+
 module.exports={
     MessageDaoSingleton,
     ProductDaoSingleton,
     ChatUserDaoSingleton,
+    UserDaoSingleton,
 }

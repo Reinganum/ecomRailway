@@ -1,7 +1,7 @@
 // CHAT USER CONTROLLER 
 
 const Repo=require('../repository/repository')
-const Users = Repo.Usr
+const Users = Repo.ChatUser
 const Messages=Repo.Msgs
 const Items=Repo.Prods
 

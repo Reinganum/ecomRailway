@@ -20,6 +20,16 @@ class ChatUserDTO{
         this.time=time
     }
 }
+
+class UserDTO{
+    constructor({firstname,lastname,email,mobile}){
+        this.firstname=firstname
+        this.lastname=lastname
+        this.email=email
+        this.mobile=mobile
+    }
+}
+
 function msgAsDTO(msg){
     if(Array.isArray(msg)){
         return msg.map(msg=> new MessageDTO(msg))
@@ -32,17 +42,25 @@ function prodAsDTO(prod){
     }
     return new ProductDTO(prod)
 }
-function chatUserAsDTO(user){
-    if(Array.isArray(user)){
-        return user.map(user=> new ChatUserDTO(user))
+function chatUserAsDTO(chatUser){
+    if(Array.isArray(chatUser)){
+        return chatUser.map(user=> new ChatUserDTO(user))
     }
-    return new ChatUserDTO(user)
+    return new ChatUserDTO(chatUser)
+}
+
+function userAsDTO(user){
+    if(Array.isArray(user)){
+        return user.map((user)=>new UserDTO(user))
+    }
+    return new UserDTO(user)
 }
 
 
 module.exports={
     msgAsDTO,
     prodAsDTO,
-    chatUserAsDTO
+    chatUserAsDTO,
+    userAsDTO
 }
 

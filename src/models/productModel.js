@@ -29,9 +29,6 @@ const productSchema=new mongoose.Schema({
     quantity:{
         type:Number,
         required:true,
-        thumbnails:{
-            type:Array,
-        }
     },
     ratings:[
         {
