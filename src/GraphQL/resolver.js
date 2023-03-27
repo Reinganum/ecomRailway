@@ -3,16 +3,13 @@ const Products=Repo.Prods
 const Users=Repo.Users
 const logger=require('../config/logger')
 const bcrypt=require('bcrypt')
+const {getProduct}=require('../controller/productController')
 
 const passwordMatches=async function (enteredPass,storedPassword){
     return await bcrypt.compare(enteredPass, storedPassword)
 }
 
 const root = {
-    getProduct:async(queryId)=>{
-        const {id}=(queryId)
-        return await Products.getById(id)
-    },
     getProducts:async()=>{
         return await Products.getAll()
     },
