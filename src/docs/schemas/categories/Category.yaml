@@ -1,0 +1,17 @@
+# Category
+components:
+  schemas:
+    Category:
+      type: object
+      required:
+      properties:
+        _id:
+          type: string
+          description: The auto-generated id of the Cart.
+        name:
+          type: string
+          description: Name of the product Category
+      example:
+         _id: "640ce22c39ab33f991ca5968"
+         products: "TV Series"
+         

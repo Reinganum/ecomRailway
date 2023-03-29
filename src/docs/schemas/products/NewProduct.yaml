@@ -1,0 +1,27 @@
+# NewProduct
+components:
+  requestBodies:
+    NewProduct:
+      type: object
+      required:
+        - title
+        - description
+        - price
+        - thumbnail
+        - category 
+      properties:
+        title:
+          type: string
+          description: The title of the product.
+        description:
+          type: string
+          description: The description of the product.
+        price:
+          type: number
+          description: The price of the product.
+      example:
+         title: "El largo viaje a la felicidad de Mama Kusters"
+         description: "pelicula alemana antigua"
+         price: 35000
+         thumbnail: "http://images.png"
+         category: "Cine Alemán"

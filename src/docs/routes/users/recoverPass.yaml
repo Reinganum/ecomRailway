@@ -1,0 +1,21 @@
+paths:
+  /user/recover-password:
+    post:
+      summary: Get an access token by providing User's email account.
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/requestBodies/RecoverPassword'
+      responses:
+        "201":
+          description: Token that allows you to update password without logging in. 
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/requestBodies/PassToken'
+                example:
+                  token: "345013fa0a4071c2a3d14c5421f183bc88893419f235bd8f1fa83fd542a51086"

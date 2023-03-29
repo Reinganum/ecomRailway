@@ -1,0 +1,21 @@
+paths:
+  /order:
+    post:
+      summary: Creates a new Order with data existent in user's cart
+      security: 
+        - BearerAuth: []
+      tags:
+        - Orders
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Cart'
+      responses:
+        "201":
+          description: The created Order
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'

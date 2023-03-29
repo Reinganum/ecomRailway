@@ -1,0 +1,21 @@
+paths:
+  /user/{id}:
+    get:
+      summary: Fetches a User by its unique ID
+      tags:
+        - Users
+      parameters:
+      - name: id
+        in: path
+        description: Path parameter takes User ID
+        required: true
+        type: string
+      responses:
+        "200":
+          description: The User with the id sent through params. 
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        "404":
+          description: Product not found Error

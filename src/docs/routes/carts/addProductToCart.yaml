@@ -1,0 +1,21 @@
+paths:
+  /cart:
+    post:
+      summary: Adds the product to authed user's Cart
+      security: 
+         - BearerAuth: []
+      tags:
+        - Carts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/requestBodies/AddProduct'
+      responses:
+        "201":
+          description: The updated Cart.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'

@@ -1,45 +1,22 @@
 const { DaoFactory } = require("../DAO/factoryDAO")
-
+const { OrderDaoSingleton } = require("../DAO/Singleton/singleton")
 const DAO=DaoFactory.getDao()
+const {ProductRepoSingleton,CartRepoSingleton,UserRepoSingleton,ChatRepoSingleton,MessageRepoSingleton,CategoryRepoSingleton}=require('./singleton')
 
-class Repository {
-    constructor(DAO){
-        this.DAO=DAO
-    }
-    getAll(){
-        return this.DAO.getAll()
-    }
-    getById(id){
-        return this.DAO.getById(id)
-    }
-    getBySocketID(socketID){
-        return this.DAO.getBySocketID(socketID)
-    }
-    save(newObject){
-        return this.DAO.save(newObject)
-    }
-    deleteById(id){
-        return this.DAO.deleteById(id)
-    }
-    deleteAll(){
-        return this.DAO.deleteAll()
-    }
-    updateById( id, updateObject){
-        return this.DAO.updateById(id, updateObject)
-    }
-    updateNickname(newData,id){
-        return this.DAO.updateNickname(newData,id)
-    }
-}
-
-const MessageRepo=new Repository(DAO.messages)
-const ProductRepo=new Repository(DAO.products)
-const ChatuserRepo=new Repository(DAO.chatuser)
-const UserRepo=new Repository(DAO.users)
+const Product=ProductRepoSingleton.getInstance()
+const User=UserRepoSingleton.getInstance()
+const Cart=CartRepoSingleton.getInstance()
+const ChatUser=ChatRepoSingleton.getInstance()
+const Message=MessageRepoSingleton.getInstance()
+const Category=CategoryRepoSingleton.getInstance()
+const Order=OrderDaoSingleton.getInstance()
 
 module.exports={
-    Msgs:MessageRepo,
-    Prods:ProductRepo,
-    Users:UserRepo,
-    ChatUser:ChatuserRepo
+    Product,
+    User,
+    Cart,
+    ChatUser,
+    Message,
+    Category,
+    Order
 }

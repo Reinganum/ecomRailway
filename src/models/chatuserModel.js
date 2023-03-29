@@ -11,10 +11,6 @@ const chatuserSchema=new mongoose.Schema({
     time:{
         type:String,
     },
-    id:{
-        type:Number,
-        unique:true,
-    }
   },
 )
 

@@ -1,0 +1,14 @@
+tags:
+  - name: Users
+    description: Full list of CRUD operations for handling Product Database, and AUTH routes.
+  - name: Products
+    description: Full list of CRUD operations for handling Product Database
+  - name: Carts
+    description: Full list of CRUD operations for handling Carts Database
+  - name: Orders
+    description: CRUD for handling user's Orders
+  - name: Categories
+    description: CRUD for handling Product Categories
+
+    
+    

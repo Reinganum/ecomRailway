@@ -1,112 +1,18 @@
-const Product=require('../models/productModel')
-const User=require('../models/userModel')
-const Cart=require('../models/cartModel')
 const asyncHandler=require('express-async-handler');
 const sendMsg = require('./twilioController');
-const config = require('../config/twilio');
 const sendEmail = require('./emailController');
-const logger = require('../config/logger');
+const {logger}=require('../config/index')
+const {User,Cart,Product}=require('../repository/repository');
+const { cartAsDTO } = require('../DTO/DTO');
 
-/*
-const userCart=asyncHandler(async(req,res)=>{
-    const {cart}=req.body
-    const {_id}=req.user
+// GET ALL CARTS
+
+const getAllCarts=asyncHandler(async(req,res)=>{
     try{
-        let products=[]
-        const user= await User.findById(_id)
-        const cartAlreadyExists=await Cart.findOne({buyer:user._id})
-        if (cartAlreadyExists){
-            console.log(cartAlreadyExists)
-            cartAlreadyExists.remove()
-        }
-        for(let i=0;i<cart.length;i++){
-            let object={}
-            object.product=cart[i]._id
-            object.quantity=cart[i].quantity
-            let getPrice=await Product.findById(cart[i]._id).select('price').exec()
-            object.price=getPrice.price;
-            products.push(object);
-        }
-        let cartTotal=0;
-        for (let i=0;i<products.length;i++){
-            cartTotal=cartTotal+products[i].price*products[i].quantity;
-        }
-        let newCart=await new Cart({
-            products,
-            cartTotal,
-            buyer:user?._id
-        }).save()
-
-        res.json(newCart)
-    } catch(error){
-        throw new Error(error)
-    }
-})
-*/
-/*
-let user=await User.findByIdAndUpdate(_id,
-    {
-        $push:{Wishlist:prodId}
-    },
-    {
-        new:true,
-    }
-)
-*/
-
-// ADD TO CART 
-
-const addToCart=asyncHandler(async(req,res)=>{
-    const {cart}=req.body
-    const {_id}=req.user
-    const productId=(cart[0]._id)
-    console.log(cart)
-    try{
-        const user= await User.findById(_id)
-        const cartAlreadyExists=await Cart.findOne({buyer:user._id})
-        if (cartAlreadyExists){
-            console.log("yes cart already exists")
-            const id=cartAlreadyExists._id
-            const prod=await Product.findById(productId)
-            if(prod){
-                const prodPrice=Number(prod.price)
-                /*for(let i=0;i<cartAlreadyExists.products.length;i++){
-                    if(cartAlreadyExists.products[i]._id.equals(cart[0]._id)){
-                        console.log(true)
-                        // en este caso agregar 1 o cambiar funcionalidad para quitar
-                    } else {
-                        console.log(false)
-                        // en este caso el producto no esta en el carrito
-                    }
-                }*/
-                const updatedCart=await Cart.findByIdAndUpdate(id,
-                    {
-                        $push:{products:[{_id:cart[0]._id,quantity:1,price:prodPrice,title:prod.title}]},
-                        cartTotal:(cartAlreadyExists.cartTotal+prodPrice)
-                    },
-                    {
-                        new:true
-                    }
-                    )
-                res.json(updatedCart)
-            }
-        } else {
-            console.log("no such cart so we have to create one to add THE PRODUCT")
-            console.log("")
-            const prod=await Product.findById(productId)
-            if(prod){
-                const prodPrice=Number(prod.price)
-                let products=[{_id:productId,quantity:1,price:prodPrice,title:prod.title}]
-                let newCart=await new Cart({
-                    products,
-                    cartTotal:prodPrice,
-                    buyer:user?._id,
-                }).save()
-                res.json(newCart)
-            }
-        } 
+        const response=await Cart.getAll()
+        res.json(response)
     }catch(error){
-        logger.error(`Error in the add to cart functionality ${error}`)
+        logger.error(`error getting cart collection ${error}`)
     }
 })
 
@@ -114,30 +20,86 @@ const addToCart=asyncHandler(async(req,res)=>{
 // GET USERS CART
 
 const getUserCart=asyncHandler(async(req,res)=>{
+    console.log(`getUserCart called ${req.user}`)
     const {_id}=req.user
     try{
-        const cart=await Cart.findOne({buyer:_id}).populate("products.product")
-        if(cart){
-            let cartTotal=0;
-            for (let i=0;i<cart.products.length;i++){
-                cartTotal=cartTotal+cart.products[i].price*cart.products[i].quantity;
-            }
-            newCart=await Cart.findByIdAndUpdate(cart._id,{cartTotal:cartTotal})
-            logger.info("cart updated succesfully")
+        const cart=await Cart.findOne({buyer:_id})
+        if(!cart){
+            console.log("cart not found")
+            let newCart=await Cart.save({
+                buyer:_id,
+                products:[],
+                cartTotal:0
+            })
+            console.log(newCart)
             res.json(newCart)
         } else {
-            let products=[]
-            let cartTotal=0;
-            let newCart=await new Cart({
-                products,
-                cartTotal,
-                buyer:_id
-            }).save()
-            logger.info('new cart created')
-            res.json(newCart)
+            res.json(cart)
         }
     }catch(error){
         logger.error(`error in getting user cart funcionality ${error}`)
+    }
+})
+
+// ADD PRODUCT TO CART
+const addToCart=asyncHandler(async(req,res)=>{
+    const {productId,quantity}=req.body
+    const {_id}=req.user
+    try{
+        const cartAlreadyExists=await Cart.findOne({buyer:_id})
+        const prod=await Product.getById(productId)
+        if(!prod){
+            console.log("product not found")
+            logger.info(`Product with ID:${productId} not found (addToCart)`)
+        }
+        if(!cartAlreadyExists){
+            console.log("cart doesnt exist")
+            const prodPrice=Number(prod.price)
+                let products=[{_id:productId,quantity:quantity,price:prodPrice,title:prod.title}]
+                let newCart=await Cart.save({
+                    products,
+                    cartTotal:(prodPrice*quantity),
+                    buyer:_id,
+                })
+                res.json(newCart)
+        } else {
+            console.log("cart already exist")
+            const id=cartAlreadyExists._id
+            const productsArr=cartAlreadyExists.products
+            const productIndex=productsArr.findIndex((prod)=>prod._id.toString()===productId)
+            if(productIndex!==-1){
+                productsArr[productIndex].quantity+=quantity
+                newCartTotal=cartAlreadyExists.cartTotal+(prod.price*quantity)
+                const updatedCart=await Cart.updateById(id,
+                    {
+                        products:productsArr,
+                        cartTotal:newCartTotal
+                    },
+                    {
+                        new:true
+                    })
+                res.json(updatedCart)
+            } else {
+                productsArr.push({
+                    _id:productId,
+                    quantity:quantity,
+                    title:prod.title,
+                    price:prod.price
+                })
+                newCartTotal=cartAlreadyExists.cartTotal+(prod.price*quantity)
+                const updatedCart=await Cart.updateById(id,
+                    {
+                        products:productsArr,
+                        cartTotal:newCartTotal
+                    },
+                    {
+                        new:true
+                    })
+                res.json(updatedCart)
+            }
+        }
+    } catch(error){
+        logger.error(`Error in the add to cart functionality ${error} (addToCart)`)
     }
 })
 
@@ -146,8 +108,7 @@ const getUserCart=asyncHandler(async(req,res)=>{
 const emptyCart=asyncHandler(async(req,res)=>{
     const {_id}=req.user;
     try{
-        const user=await User.findById(_id)
-        const cart=await Cart.findOneAndRemove({buyer:user._id})
+        const cart=await Cart.findOneAndRemove({buyer:_id})
         res.json(cart)
     }catch(error){
         logger.error(`error in removing cart ${error}`)
@@ -157,28 +118,28 @@ const emptyCart=asyncHandler(async(req,res)=>{
 // REMOVE PRODUCT FROM CART
 
 const removeFromCart=asyncHandler(async(req,res)=>{
-    const {product}=req.body
+    const {productId}=req.body
     const {_id}=req.user
     try{
-        /*
-        {
-            $push:{products:[{_id:cart[0]._id,quantity:1,price:prodPrice,title:prod.title}]},
-            cartTotal:(cartAlreadyExists.cartTotal+prodPrice)
-        },
-        */
-        const getProduct=await Product.findById(product)
-        const getCart=await Cart.findOne({buyer:_id})
-        const newCartTotal=getCart.cartTotal-getProduct.price
-        const userCart=await Cart.findOneAndUpdate({buyer:_id},
-            {
-             $pull: { products: {_id:product} },
-             cartTotal:newCartTotal,
-            },
-            {
-                new:true
-            },
-    )
-    res.json(userCart)
+        const product=await Product.getById(productId)
+        const userCart=await Cart.findOne({buyer:_id})
+        const products=userCart.products
+        console.log(products)
+        const productIndex=userCart.products.findIndex((prod)=>prod._id.toString()===productId)
+        console.log(productIndex)
+        if(productIndex!==-1){
+                let quantity=products[productIndex].quantity
+                products.splice(productIndex,1)
+                const newCart={
+                    products:products,
+                    cartTotal:userCart.cartTotal-(product.price*quantity)
+                }
+                const updatedCart=await Cart.updateById(userCart._id,newCart)
+                res.json(updatedCart)
+            } else {
+                logger.info("product not found in users cart")
+                res.json({Error:"product not found in users cart"})
+        }
     } catch(error){
         logger.error(`Error removing product from cart ${error}`)
     }
@@ -214,5 +175,6 @@ module.exports={
     addToCart, 
     getUserCart, 
     emptyCart, 
-    removeFromCart 
+    removeFromCart,
+    getAllCarts
 }

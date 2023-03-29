@@ -1,0 +1,11 @@
+paths:
+  /cart:
+    delete:
+      summary: Deletes the Cart owned by the authed User. 
+      tags:
+        - Carts
+      responses:
+        "204":
+          description: Cart succesfully removed.
+        "404":
+          description: Cart not found. 

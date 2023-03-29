@@ -1,28 +1,26 @@
-const User=require('../models/userModel')
+const {User}=require('../repository/repository')
 const asyncHandler=require('express-async-handler')
-const logger = require('../config/logger')
 
 const saveAvatar=asyncHandler(async(userId,avatar)=>{
     try{
-        await User.findByIdAndUpdate(userId,{avatar},{new:true})
+        await User.updateById(userId,{avatar},{new:true})
     }catch(error){
         logger.error(error)
 }})
 
 const renderAvatar=(req,res)=>{
-    const name=req.user.firstname
     const avatar=`../uploads/${req.user.avatar}`
-    res.render("greeting",{name,avatar})
+    res.send({avatar:avatar})
 }
 
 const updateAvatar=(req,res)=>{
-     const file = req.file;
-     saveAvatar(req.user.id,`../uploads/${file.filename}`)
-     if (!file) {
-        logger.info('Could not upload file: no file')
-        return res.status(400).send('Could not upload file: no file');
-    }
-    res.redirect('/dashboard')
+    console.log("we made it to the updateAvatar")
+     if(!req.user){
+        console.log("no user in the req")
+     }
+     const {file}=req
+     saveAvatar(req.user._id,`/uploads/${file.filename}`)
+     res.send({avatar:`/uploads/${file.filename}`})
 }
 module.exports={
     saveAvatar,

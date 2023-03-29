@@ -1,0 +1,12 @@
+# UpdatePass
+components:
+  requestBodies:
+    UpdatePass:
+      type: object
+      required:
+        - password
+      properties:
+        password:
+          description: The new password the User wants to set.
+      example:
+         password: nuevoPassword

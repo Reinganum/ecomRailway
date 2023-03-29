@@ -22,12 +22,48 @@ class ChatUserDTO{
 }
 
 class UserDTO{
-    constructor({firstname,lastname,email,mobile}){
+    constructor({firstname,lastname,email,mobile,avatar,role}){
         this.firstname=firstname
         this.lastname=lastname
         this.email=email
         this.mobile=mobile
+        this.avatar=avatar
+        this.role=role
     }
+}
+
+class CartDTO{
+    constructor({products,cartTotal,buyer}){
+        this.products=products
+        this.cartTotal=cartTotal
+        this.buyer=buyer
+    }
+}
+
+class CategoryDTO{
+    constructor({name}){
+        this.name=name
+    }
+}
+
+class OrderDTO{
+    constructor({name}){
+        this.name=name
+    }
+}
+
+function orderAsDTO(order){
+    if(Array.isArray(order)){
+        return order.map(order=> new OrderDTO(order))
+    }
+    return new OrderDTO(order)
+}
+
+function categoryAsDTO(category){
+    if(Array.isArray(category)){
+        return category.map(category=> new CategoryDTO(category))
+    }
+    return new CategoryDTO(category)
 }
 
 function msgAsDTO(msg){
@@ -56,11 +92,21 @@ function userAsDTO(user){
     return new UserDTO(user)
 }
 
+function cartAsDTO(cart){
+    if(Array.isArray(cart)){
+        return cart.map((cart)=>new UserDTO(cart))
+    }
+    return new CartDTO(cart)
+}
+
 
 module.exports={
     msgAsDTO,
     prodAsDTO,
     chatUserAsDTO,
-    userAsDTO
+    userAsDTO,
+    cartAsDTO,
+    categoryAsDTO,
+    orderAsDTO,
 }
 

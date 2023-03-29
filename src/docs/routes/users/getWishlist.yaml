@@ -1,0 +1,19 @@
+paths:
+  /user/wishlist:
+    get:
+      security: 
+         - BearerAuth: []
+      summary: Gets the User's Wishlist from the ID stored in auth token. 
+      tags:
+        - Users
+      in: header
+      name: authorization
+      responses:
+        "200":
+          description: Gets all the products ID stored in Wishlist Array. 
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WishlistResponse'

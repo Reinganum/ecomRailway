@@ -1,13 +1,40 @@
-const { msgAsDTO, prodAsDTO,chatUserAsDTO, userAsDTO} = require("../../DTO/DTO")
+const { msgAsDTO, prodAsDTO,chatUserAsDTO, userAsDTO, cartAsDTO,categoryAsDTO,orderAsDTO} = require("../../DTO/DTO")
+const config=require('../../config/index')
+
 const messageModel=require('../../models/messageModel')
 const productModel = require("../../models/productModel")
 const chatuserModel=require('../../models/chatuserModel')
 const userModel=require('../../models/userModel')
+const cartModel=require('../../models/cartModel')
+const categoryModel=require('../../models/productCategoryModel')
+const orderModel=require('../../models/orderModel')
 
 let ProductDaoInstance=null
 let MessageDaoInstance=null
 let ChatUserDaoInstance=null
 let UserDaoInstance=null
+let CartDaoInstance=null
+let CategoryDaoInstance=null
+let OrderDaoInstance=null
+
+class OrderDaoSingleton {
+    static OrderDaoInstance
+    static getInstance=(DAO)=>{
+        if(!OrderDaoInstance)
+        OrderDaoInstance=new DAO(process.env.Order_STORAGE_NAME,orderAsDTO, orderModel)
+        return OrderDaoInstance
+    }
+}
+
+class CategoryDaoSingleton {
+    static CategoryDaoInstance
+    static getInstance=(DAO)=>{
+        if(!CategoryDaoInstance)
+        CategoryDaoInstance=new DAO(process.env.CATEGORY_STORAGE_NAME, categoryAsDTO, categoryModel)
+        return CategoryDaoInstance
+    }
+}
+
 
 class MessageDaoSingleton {
     static MessageDaoInstance
@@ -17,12 +44,13 @@ class MessageDaoSingleton {
         return MessageDaoInstance
     }
 }
-class ProductDaoSingleton {
-    static ProductDaoInstance
+
+class CartDaoSingleton {
+    static CartDaoInstance
     static getInstance=(DAO)=>{
-        if(!ProductDaoInstance)
-            ProductDaoInstance=new DAO(process.env.PRODUCTS_STORAGE_NAME, prodAsDTO,productModel)
-        return ProductDaoInstance
+        if(!CartDaoInstance)
+            CartDaoInstance=new DAO(process.env.CART_STORAGE_NAME, cartAsDTO, cartModel)
+        return CartDaoInstance
     }
 }
 
@@ -44,9 +72,22 @@ class UserDaoSingleton {
     }
 }
 
+class ProductDaoSingleton {
+    static ProductDaoInstance
+    static getInstance=(DAO)=>{
+        if(!ProductDaoInstance)
+            ProductDaoInstance=new DAO(process.env.PRODUCTS_STORAGE_NAME, prodAsDTO,productModel)
+        return ProductDaoInstance
+    }
+}
+
+
 module.exports={
     MessageDaoSingleton,
     ProductDaoSingleton,
     ChatUserDaoSingleton,
     UserDaoSingleton,
+    CartDaoSingleton,
+    CategoryDaoSingleton,
+    OrderDaoSingleton,
 }

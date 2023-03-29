@@ -1,0 +1,18 @@
+# AddProduct
+components:
+  requestBodies:
+    AddProduct:
+      type: object
+      required:
+        - productId
+        - quantity
+      properties:
+        title:
+          type: string
+          description: The unirque ID of the Product to add to Cart. 
+        quantity:
+          type: number
+          description: The item count of added Product
+      example:
+         title: "640b41ad3fb177c35823a6a2"
+         quantity: 5

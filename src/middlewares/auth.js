@@ -1,40 +1,44 @@
-const User=require('../models/userModel')
+const {User}=require('../repository/repository')
 const jwt=require('jsonwebtoken')
 const asyncHandler=require('express-async-handler')
-const util = require('util')
+const config=require('../config/index')
 
 const auth=asyncHandler(async(req,res,next)=>{
     let token;
-    if(!req?.headers?.authorization?.startsWith("Bearer")&&!req.cookies.refreshToken)res.redirect('/login')
-    if (req?.headers?.authorization?.startsWith("Bearer")){
-        token=(req.headers.authorization.split(' ')[1])
-        try{
-            if (token){
-                const decoded=jwt.verify(token, process.env.JWT_SECRET)
-                const user=await User.findById(decoded?.id)
-                req.user=user
+    if(!req?.headers?.authorization?.startsWith("Bearer")&&!req.session){
+        res.json({Error: "user is not authenticated"})
+    }
+    try{
+        if(config.AUTH_METHOD.AUTH==='JWT'){
+         if (req?.headers?.authorization?.startsWith("Bearer")){
+                token=(req.headers.authorization.split(' ')[1])
+                const decoded=jwt.verify(token, config.JWT.secret)
+                req.user=await User.getById(decoded?.id)
                 next()
-            }
-        }catch(error){
-            res.redirect('/login')
-            throw new Error('non authed user, token expired, login')
+         }  
+        } else {
+        req.user=await User.getById(req.session.userId.userId)
+        next()
         }
-    } else if (req.cookies.refreshToken!==null){
-        token=req.cookies.refreshToken
-        try{
-            if (token){
-                const decoded=jwt.verify(token, process.env.JWT_SECRET)
-                const user=await User.findById(decoded?.id)
-                req.user=user
-                next()
-            }
-        }catch(error){
-            throw new Error('non authed user, token expired, login')
-        }
-    } else {
-        res.redirect('/login')
+    }catch(error){
+        throw new Error(`error in the auth middleware login: ${error.name}`)
     }
 })
+
+
+const verifyJWT=async(req,res,next)=>{
+    const authHeader=req.headers['authorization'];
+    if (!authHeader) return res.sendStatus(401);
+    const token=authHeader.split(' ')[1];
+    jwt.verify(
+        token,
+        config.JWT.secret,
+        (err,decoded)=>{
+            if(err) return res.sendStatus(403);
+            req.user=decoded.email
+            next();
+        })
+}
 
 const isAdmin=asyncHandler(async(req,res,next)=>{
     if (req.user.role!=="admin"){

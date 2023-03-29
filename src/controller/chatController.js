@@ -1,54 +1,37 @@
 // CHAT USER CONTROLLER 
 
-const Repo=require('../repository/repository')
-const Users = Repo.ChatUser
-const Messages=Repo.Msgs
-const Items=Repo.Prods
+const {Product,ChatUser,Message}=require('../repository/repository')
+
 
 const newUser=async(socket,io)=>{
     console.log(`new connected user with socketID: ${socket.id}`)
     let currentDate = new Date();
-    let timestamp = `${currentDate.getHours()}:${currentDate.getMinutes()}:${currentDate.getSeconds()}`;
-    await Users.save({socketID:socket.id,nickname:null,time:timestamp})
-    const allMsgs = await Messages.getAll()
-    const allUsers = await Users.getAll()
+    let timestamp = `${currentDate.getHours()}`+":"+
+    `${String(currentDate.getMinutes()).length===2?currentDate.getMinutes():'0'+currentDate.getMinutes()}`+":"+
+    `${String(currentDate.getSeconds()).length===2?currentDate.getSeconds():'0'+currentDate.getSeconds()}`;
+    await ChatUser.save({socketID:socket.id,nickname:null,time:timestamp})
+    const allMsgs = await Message.getAll()
+    const allUsers = await ChatUser.getAll()
     io.sockets.emit('allMsgs',allMsgs)
+    console.log('allmsgs sent to front end')
     io.sockets.emit('allUsers',allUsers)
 }
 
-const changeUser=async(socket,io,newName)=>{
-    const user = await Users.getBySocketID(socket.id)
-    let userID=0
-    Array.isArray(user)?userID=user[0].id:userID=user.id    
-    await Users.updateNickname(newName.name,userID) 
-    const allUsers=await Users.getAll()
-    io.sockets.emit('allUsers',allUsers)   
-}
-
-const userDisconnected = async(socket,io)=>{
-    const user = Users.getById(socket.id)
-    const userID=user.id
-    if (user)
-    Users.deleteById(userID)
-    const allUsers =await Users.getAll()
-    io.sockets.emit('allUsers',allUsers)
+const userDisconnected = async(socketID)=>{
+    const response=await ChatUser.findOneAndRemove({socketID})
 }
 
 // MESSAGE CONTROLLER 
 
 const newMessage=async(socket,io,newMsg)=>{
     let currentDate = new Date();
-    let timestamp = `${currentDate.getHours()}:${currentDate.getMinutes()}:${currentDate.getSeconds()}`;
-    await Messages.save({socketID:socket.id,msg:newMsg,time:timestamp})
-    const allMsgs = await Messages.getAll()
+    let timestamp = `${currentDate.getHours()}`+":"+
+    `${String(currentDate.getMinutes()).length===2?currentDate.getMinutes():'0'+currentDate.getMinutes()}`+":"+
+    `${String(currentDate.getSeconds()).length===2?currentDate.getSeconds():'0'+currentDate.getSeconds()}`;
+    await Message.save({socketID:socket.id,msg:newMsg.msg,time:timestamp,author:newMsg.author,author_id:newMsg.author_id})
+    const allMsgs = await Message.getAll()
     io.sockets.emit('allMsgs', allMsgs)
 }
-// NEW ITEM 
 
-const newItem=async(socket, io, newItem)=>{
-    await Items.save(newItem)
-    const allItems=await Items.getAll()
-    io.sockets.emit('items',allItems)
-}
 
-module.exports = {newUser,changeUser,userDisconnected,newMessage,newItem}
+module.exports = {newUser,userDisconnected,newMessage}

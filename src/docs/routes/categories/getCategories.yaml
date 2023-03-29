@@ -1,0 +1,19 @@
+paths:
+  /category:
+    get:
+      security: 
+         - BearerAuth: []
+      summary: Gets all the users listed in the database
+      tags:
+        - Categories
+      in: header
+      name: authorization
+      responses:
+        "200":
+          description: Gets all the users listed in the consulted database. 
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'

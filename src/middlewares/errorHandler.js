@@ -1,4 +1,4 @@
-const logger = require("../config/logger")
+const logger = require("../config").logger
 
 const notFound=(req,res,next)=>{
     const error=new Error (`Not found: ${req.originalUrl}`)

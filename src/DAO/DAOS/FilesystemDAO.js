@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path=require('path')
-const logger = require('../../config/logger')
-
+const { logger } = require('../../config/index')
+const uniqid=require('uniqid')
 
 class FilesystemDAO{
     constructor(file,DTO) {
@@ -15,7 +15,7 @@ class FilesystemDAO{
                 this.file=path.join(process.cwd(), `./src/DB/${file}.json`)
             }
           } catch (error) {
-            logger.info(`Error en el constructor: ${error.message}`)
+            logger.info(`Error in the constructor: ${error.message}`)
           }
       }
     async getAll() {
@@ -25,43 +25,63 @@ class FilesystemDAO{
             return arrObj;
         }
         catch (error) {
-            logger.info(`error en la lectura: ${error}`)
+            logger.info(`Error couldn't fetch objects in file: ${error}`)
         }
     }
     async save(obj){
         try{
-            let arrProductos= await this.getAll()
-            let nuevoId=arrProductos.length+1
-            obj.id=nuevoId;
-            arrProductos.push(obj)
-            let nuevoArr=arrProductos
+            let array= await this.getAll()
+            obj._id=uniqid();
+            array.push(obj)
+            let nuevoArr=array
             await fs.promises.writeFile(this.file,JSON.stringify(nuevoArr))
-            return this.DTO(obj)
+            return obj
         }
         catch (error){
-            logger.info(`error, no se pudo agregar objeto: ${error}`)
+            logger.info(`Error could not save object: ${error}`)
         }
     }
-    async getById(id){
+    async query(queryStr){
+        return queryStr
+    }
+    async find(prop){
         try{
-            let objects=await this.getAll()
-            let foundObject=objects.find((obj)=>{return obj.id==id})
-            if(foundObject===undefined){
-                return {error:"this ID is invalid or object is not found"}
-            }
+            const array=await this.getAll()
+            const propName=(Object.keys(prop)[0])
+            const propValue=prop[`${propName}`]
+            const foundObjs=array.filter((obj)=>obj[`${propName}`]===propValue)
+            return foundObjs
+        }catch(error){
+            logger.info(`FS DAO error, could not filter objects (findOne): ${error}`)
+        }
+    }
+    async findOne(prop){
+        try{
+            const array=await this.getAll()
+            const propName=(Object.keys(prop)[0])
+            const propValue=prop[`${propName}`]
+            const foundObj=array.find((obj)=>obj[`${propName}`]===propValue)
+            return foundObj
+        }catch(error){
+            logger.info(`FS DAO error, no se pudo encontrar objeto (findOne): ${error}`)
+        }
+    }
+    async getById(_id){
+        try{
+            let array=await this.getAll()
+            let foundObject=array.find((obj)=>{return obj._id===String(_id)})
             return foundObject
         }
         catch(error){
             logger.info(`error, could not get object with requested Id: ${error}`)
         }
     }
-    async updateById( id, update){
+    async updateById(_id, update){
         try{
-            console.log(id)
             let objects=await this.getAll()
-            const index=objects.findIndex((obj)=>obj.id==id)
+            const index=objects.findIndex((obj)=>obj._id==_id)
             if(index===-1){
-                return {error:"this ID is invalid or object is not found"}
+                return {error:"this ID is invalid or object is not found (update)"}
             }
             const updatedObject={...objects[index],...update}
             objects[index]=updatedObject
@@ -71,18 +91,19 @@ class FilesystemDAO{
             logger.info(`error, could not update object: ${error}`)
         }
     }
-    async deleteById(id){
+    async findOneAndRemove(prop){
+        const foundObject=await this.findOne(prop)
+        await this.deleteById(foundObject._id)
+    }
+    async deleteById(_id){
         try{
-            let objects=await this.getAll()
-            let index=await objects.findIndex(obj=>obj.id==id)
+            let array=await this.getAll()
+            let index=await array.findIndex(obj=>obj._id===String(_id))
             if(index===-1){
                 return {error:"this ID is invalid or object is not found"}
             }
-            const [removedObject]=objects.splice(index,1)
-            for (let i=index;i<objects.length;i++){
-                objects[i].id-=1
-            }
-            await fs.promises.writeFile(this.file,JSON.stringify(objects))
+            const [removedObject]=array.splice(index,1)
+            await fs.promises.writeFile(this.file,JSON.stringify(array))
             return removedObject
         } catch(error){
             logger.info(`error, could not delete object: ${error}`)
@@ -104,7 +125,6 @@ class FilesystemDAO{
         }
     }
 }
-
 
 
 module.exports=FilesystemDAO;

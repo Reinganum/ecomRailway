@@ -1,0 +1,21 @@
+paths:
+  /product/wishlist:
+    put:
+      summary: Adds product by its ID to the Users Wishlist
+      tags:
+        - Products
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WishlistBody'
+      responses:
+        "200":
+          description: The updated product.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WishlistResponse'
+        "404":
+          description: Product not found Error

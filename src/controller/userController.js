@@ -1,35 +1,36 @@
+const bcrypt=require('bcrypt')
 const jwt=require('jsonwebtoken')
-const User=require('../models/userModel')
 const asyncHandler=require('express-async-handler');
-const generateToken = require('../config/jwt');
-const validateMongoDBID = require('../utils/validateMongoDbID');
-const signRefreshToken = require('../config/refreshJWT');
+const generateToken = require('../config/config/jwt');
+const signRefreshToken = require('../config/config/refreshJWT');
 const sendEmail=require('../controller/emailController')
 const crypto=require('crypto')
-const Product=require('../models/productModel')
-const Cart=require('../models/cartModel');
-const { findOne } = require('../models/userModel');
-const logger = require('../config/logger');
+const config = require('../config/index');
+const {User}=require('../repository/repository')
+const logger=require('../config/config/logger')
 
 // REGISTER USER 
 
 const createUser=asyncHandler(async(req,res)=>{
-    const email=req.body.email;
+    const {email,password,firstname,lastname,mobile,avatar,role}=req.body;
     const findUser=await User.findOne({email:email});
     if(!findUser){
-        // create new user
-        const newUser=await User.create(req.body);
-        const {firstname,lastname}=req.body
+        const salt=bcrypt.genSaltSync(10);
+        const hashedPass=await bcrypt.hash(password, salt)
+        const newUser=await User.save({
+            email,password:hashedPass,firstname,lastname,mobile,avatar,role,wishlist:[],ratings:[]
+        })
         const data={
             to:email,
             text:`Hello ${firstname} ${lastname}, we welcome you to our community!`,
             subject:"Welcome to the eCommerce",
         }
         sendEmail(data)
-        res.redirect('/login')
+        res.json(newUser)
+        
     } else {
-        // email is used, user already exists
-        logger.info('User not created, email already in database')
+        logger.info('Error creating user')
+        res.json({error:'could not create new user'})
     }
 });
 
@@ -37,46 +38,74 @@ const createUser=asyncHandler(async(req,res)=>{
 
 const loginUser=asyncHandler(async (req,res)=>{
     const {email,password}=req.body;
-    const findUser=await User.findOne({email})
-    // aqui implementar estrategia local con passport
-    if (findUser&&await findUser.passwordMatches(password)){
-        const refreshToken=signRefreshToken(findUser?._id)
-        const updateRefresh=await User.findByIdAndUpdate(
-            findUser.id, 
-        {
-            refreshToken: refreshToken
-        },
-        {new:true})
-        res.cookie('refreshToken',refreshToken, {
-            httpOnly:true,
-            maxAge:2*60*60*1000
-        })
-        /*res.json({
-            _id:findUser?._id,
-            firstname:findUser?.firstname,
-            lastname:findUser?.lastname,
-            email:findUser?.email,
-            token:generateToken(findUser?._id)
-        })*/
-        logger.info("login successful")
-        res.redirect('/dashboard')
+    const salt=bcrypt.genSaltSync(10);
+    const hashedPass=await bcrypt.hash(password, salt)
+    const findUser=await User.findOne({email:email});
+    req.user=await findUser
+    if (findUser&&await bcrypt.compare(password, findUser.password)){
+            try{
+                if(config.AUTH_METHOD.AUTH==='JWT'){
+                const refreshToken=signRefreshToken(findUser._id)
+                const updateRefresh=await User.updateById(
+                    findUser._id, 
+                {
+                    refreshToken: refreshToken
+                },
+                {new:true})
+                res.cookie('refreshToken',refreshToken, {
+                    httpOnly:true,
+                    maxAge: Number(process.env.COOKIE_MAX_AGE)
+                })
+                res.json({
+                    _id:findUser?._id,
+                    firstname:findUser?.firstname,
+                    lastname:findUser?.lastname,
+                    email:findUser?.email,
+                    avatar:findUser?.avatar,
+                    mobile:findUser?.mobile,
+                    role:findUser?.role,
+                    accessToken:generateToken(findUser?._id)
+                })
+                logger.info("login successful (JWT system)")}
+                else {
+                    req.session.userId={
+                        userId:findUser._id,
+                    }
+                    req.session.save()
+                    res.json({
+                        _id:findUser?._id,
+                        firstname:findUser?.firstname,
+                        lastname:findUser?.lastname,
+                        email:findUser?.email,
+                        avatar:findUser?.avatar,
+                        mobile:findUser?.mobile,
+                        role:findUser?.role,
+                        accessToken:generateToken(findUser?._id),
+                    })
+                    logger.info("login successful (Session system)")
+                }
+            }catch(error){
+                logger.info(`Login error: ${error}`)
+            }
     } else {
         logger.info("invalid login")
+        res.sendStatus(401)
     }
 })
 
 // Handle refresh token
 
 const handleRefreshToken=asyncHandler(async(req,res)=>{
+    console.log("handleRefresh called")
     const cookie=req.cookies
-    console.log(req.cookies)
-    if(!cookie?.refreshToken)throw new Error('there is no refresh token in cookies')
+    if(!cookie?.refreshToken)return res.sendStatus(401)
     const refreshToken=cookie.refreshToken
     const user=await User.findOne({refreshToken})
-    if(!user)throw new Error('no user matches refresh token in Database')
-    jwt.verify(refreshToken,process.env.JWT_SECRET, (error, decoded)=>{
-        if (error || decoded.id !== user.id){
+    if(!user)res.sendStatus(403)
+    jwt.verify(refreshToken,config.JWT.refreshSecret, (error, decoded)=>{
+        if (error || decoded.id !== user._id){
             logger.warn('error in refresh token')
+            return res.sendStatus(403)
         } else {
             const accessToken=generateToken(user?._id)
             res.json({accessToken})
@@ -91,16 +120,17 @@ const logout=asyncHandler(async(req,res)=>{
     if(!cookie?.refreshToken)throw new Error('there is no refresh token in cookies')
     const refreshToken=cookie.refreshToken
     try{
-        const user=await User.findOne({refreshToken})
+        const user=await User.findOne({refreshToken:refreshToken})
     if(!user){
         res.clearCookie('refreshToken',{httpOnly:true,secure:true})
+        console.log("user not found")
         return res.sendStatus(403); 
     }
-    await User.findOneAndUpdate(refreshToken, {
+    const updatedUser=await User.updateById(user._id, {
         refreshToken:""
     })
     res.clearCookie('refreshToken',{httpOnly:true,secure:true})
-    res.sendStatus(204); 
+    res.status(201).json({message: "Successfully Logged Out", status: 201})
     } catch (error){
         logger.error(`error with refresh token: ${error}`)
     }
@@ -110,20 +140,31 @@ const logout=asyncHandler(async(req,res)=>{
 
 const getAllUsers=asyncHandler(async(req,res)=>{
     try{
-        const getUsers=await User.find();
+        const getUsers=await User.getAll();
         res.json(getUsers)
     } catch (error){
         logger.error(`Could not get users ${error}`)
     }
 })
 
+const getAuthedUser=asyncHandler(async(req,res)=>{
+    try{
+        console.log("get authed user called")
+        const {_id,firstname,lastname,avatar,mobile,email,role}=req.user
+        res.json({_id,firstname,lastname,avatar,mobile,email,role})
+    } catch (error){
+        logger.error(`Could not get users ${error}`)
+    }
+})
+
+
 // One User
 
 const getUserById=asyncHandler(async(req,res)=>{
     const {id}=req.params;
-    validateMongoDBID(id)
+    const {_id}=req.user;
     try{
-        const getUser=await User.findById(id)
+        const getUser=await User.getById(id)
         res.json(getUser)
     }catch (error){
         logger.error(`Could not get user ${error}`)
@@ -134,9 +175,8 @@ const getUserById=asyncHandler(async(req,res)=>{
 
 const deleteUserById=asyncHandler(async(req,res)=>{
     const {id}=req.params;
-    validateMongoDBID(id)
     try{
-        const deleteUser=await User.findByIdAndDelete(id)
+        const deleteUser=await User.deleteById(id)
         res.json(deleteUser)
     }catch (error){
         logger.error(`Could not delete user ${error}`)
@@ -146,10 +186,9 @@ const deleteUserById=asyncHandler(async(req,res)=>{
 // Update user by id 
 
 const updateUserById=asyncHandler(async(req,res)=>{
-    const {id}=req.user;
-    validateMongoDBID(id)
+    const {id}=req.params;
     try{
-        const updatedUser=await User.findByIdAndUpdate(id,
+        const updatedUser=await User.updateById(id,
             {
                 firstname:req?.body?.firstname,
                 lastname:req?.body?.lastname,
@@ -169,9 +208,9 @@ const updateUserById=asyncHandler(async(req,res)=>{
 
 const blockUser=asyncHandler(async(req,res,next)=>{
     const {id}=req.params
-    validateMongoDBID(id)
+    console.log(id)
     try{
-        const block=await User.findByIdAndUpdate(id,
+        const block=await User.updateById(id,
         {
             isBlocked:true
         },
@@ -189,9 +228,8 @@ const blockUser=asyncHandler(async(req,res,next)=>{
 
 const unblockUser=asyncHandler(async(req,res,next)=>{
     const {id}=req.params
-    validateMongoDBID(id)
     try{
-        const unblock=await User.findByIdAndUpdate(id,
+        const unblock=await User.updateById(id,
         {
             isBlocked:false
         },
@@ -207,17 +245,16 @@ const unblockUser=asyncHandler(async(req,res,next)=>{
     }
 })
 
-// FORGOT PASSWORD,RECOVERY OR UPDATE
+// UPDATE PASSWORD
 
 const updatePassword=asyncHandler(async(req,res)=>{
     const {_id}=req.user
     const {password}=req.body
-    validateMongoDBID(_id)
     try{
-        const user=await User.findById(_id)
+        const user=await User.getById(_id)
         if(password){
             user.password=password
-            const updatedPassword=await user.save()
+            const updatedPassword=await User.save(user)
             res.json(updatedPassword)
         } else {
             res.json(user)
@@ -234,9 +271,14 @@ const forgotPasswordToken=asyncHandler(async(req,res)=>{
     const user=await User.findOne({email})
     if(!user)throw new Error('User not found with email for password recovery')
     try{
-        const token=await user.createPasswordResetToken();
-        await user.save()
-        const resetURL=`If you forgot your password and requested a reset, follow this link (valid for 15 minutes) <a href='http://localhost:3000/api/user/reset-password/${token}'>Click here</>`
+        const token=await createPasswordResetToken();
+        await User.updateById(user._id, 
+            {
+                passwordResetToken:token.passwordResetToken,
+                passwordResetExpires:token.passwordResetExpires
+            }
+        )
+        const resetURL=`If you forgot your password and requested a reset, follow this link (valid for 15 minutes) <p>${token}</p>`
         const data={
             to:email,
             text:"Hello",
@@ -244,11 +286,23 @@ const forgotPasswordToken=asyncHandler(async(req,res)=>{
             html:resetURL,
         }
         sendEmail(data)
-        res.json(token)
+        res.json(token.resetToken)
     }catch(error){
         logger.error(`Error in lost password token function ${error}`)
     }
 })
+
+async function createPasswordResetToken () {
+    const resetToken=crypto.randomBytes(32).toString("hex")
+    const passwordResetToken=crypto
+        .createHash('sha256')
+        .update(resetToken)
+        .digest('hex')
+    const passwordResetExpires=Date.now()+30*60*15000;
+    return {resetToken,passwordResetToken,passwordResetExpires};
+}
+
+// CAMBIAR PASSWORD CON TOKEN ENVIADO AL MAIL
 
 const resetPassword=asyncHandler(async(req,res)=>{
     const {password}=req.body;
@@ -260,12 +314,19 @@ const resetPassword=asyncHandler(async(req,res)=>{
             passwordResetExpires:{$gt:Date.now()} // revisar si el token no ha expirado 
         })
         if (!user) logger.info('Token expired, please try with a new token')
-        user.password=password
-        user.passwordResetToken=undefined
-        user.passwordResetExpires=undefined
-        user.passwordChangedAt=Date.now()
-        await user.save()
-        res.json(user)  
+        if (user.passwordResetExpires<Date.now())res.json({msg:"token already expired"})
+        const salt=bcrypt.genSaltSync(10);
+        const hashedPass=await bcrypt.hash(password, salt)
+        await User.updateById(user._id,
+            {
+            password:hashedPass,
+            passwordResetToken:undefined,
+            passwordResetExpires:undefined,
+            passwordChangedAt:Date.now()
+            }
+        )
+        res.json(user) 
+        
     } catch(error){
         logger.error(`Error in reset passworld functionality: ${error}`)
     }
@@ -276,186 +337,10 @@ const resetPassword=asyncHandler(async(req,res)=>{
 const getWishList=asyncHandler(async(req,res)=>{
     const {_id}=req.user
     try{
-        const user=await User.findById(_id).select('Wishlist') // asi o populate?
-        res.json(user)
+        const user=await User.getById(_id)
+        res.json(user.wishlist)
     } catch(error){
         logger.error(`Could not retrieve user wishlist ${error}`)
-    }
-})
-/*
-const userCart=asyncHandler(async(req,res)=>{
-    const {cart}=req.body
-    const {_id}=req.user
-    try{
-        let products=[]
-        const user= await User.findById(_id)
-        const cartAlreadyExists=await Cart.findOne({buyer:user._id})
-        if (cartAlreadyExists){
-            console.log(cartAlreadyExists)
-            cartAlreadyExists.remove()
-        }
-        for(let i=0;i<cart.length;i++){
-            let object={}
-            object.product=cart[i]._id
-            object.quantity=cart[i].quantity
-            let getPrice=await Product.findById(cart[i]._id).select('price').exec()
-            object.price=getPrice.price;
-            products.push(object);
-        }
-        let cartTotal=0;
-        for (let i=0;i<products.length;i++){
-            cartTotal=cartTotal+products[i].price*products[i].quantity;
-        }
-        let newCart=await new Cart({
-            products,
-            cartTotal,
-            buyer:user?._id
-        }).save()
-
-        res.json(newCart)
-    } catch(error){
-        throw new Error(error)
-    }
-})
-*/
-/*
-let user=await User.findByIdAndUpdate(_id,
-    {
-        $push:{Wishlist:prodId}
-    },
-    {
-        new:true,
-    }
-)
-*/
-
-// ADD TO CART 
-
-const addToCart=asyncHandler(async(req,res)=>{
-    const {cart}=req.body
-    const {_id}=req.user
-    const productId=(cart[0]._id)
-    console.log(cart)
-    try{
-        const user= await User.findById(_id)
-        const cartAlreadyExists=await Cart.findOne({buyer:user._id})
-        if (cartAlreadyExists){
-            console.log("yes cart already exists")
-            const id=cartAlreadyExists._id
-            const prod=await Product.findById(productId)
-            if(prod){
-                const prodPrice=Number(prod.price)
-                /*for(let i=0;i<cartAlreadyExists.products.length;i++){
-                    if(cartAlreadyExists.products[i]._id.equals(cart[0]._id)){
-                        console.log(true)
-                        // en este caso agregar 1 o cambiar funcionalidad para quitar
-                    } else {
-                        console.log(false)
-                        // en este caso el producto no esta en el carrito
-                    }
-                }*/
-                const updatedCart=await Cart.findByIdAndUpdate(id,
-                    {
-                        $push:{products:[{_id:cart[0]._id,quantity:1,price:prodPrice,title:prod.title}]},
-                        cartTotal:(cartAlreadyExists.cartTotal+prodPrice)
-                    },
-                    {
-                        new:true
-                    }
-                    )
-                res.json(updatedCart)
-            }
-        } else {
-            console.log("no such cart so we have to create one to add THE PRODUCT")
-            console.log("")
-            const prod=await Product.findById(productId)
-            if(prod){
-                const prodPrice=Number(prod.price)
-                let products=[{_id:productId,quantity:1,price:prodPrice,title:prod.title}]
-                let newCart=await new Cart({
-                    products,
-                    cartTotal:prodPrice,
-                    buyer:user?._id,
-                }).save()
-                res.json(newCart)
-            }
-        } 
-    }catch(error){
-        logger.error(`Error in the add to cart functionality ${error}`)
-    }
-})
-
-
-// GET USERS CART
-
-const getUserCart=asyncHandler(async(req,res)=>{
-    const {_id}=req.user
-    try{
-        const cart=await Cart.findOne({buyer:_id}).populate("products.product")
-        if(cart){
-            let cartTotal=0;
-            for (let i=0;i<cart.products.length;i++){
-                cartTotal=cartTotal+cart.products[i].price*cart.products[i].quantity;
-            }
-            newCart=await Cart.findByIdAndUpdate(cart._id,{cartTotal:cartTotal})
-            logger.info("cart updated succesfully")
-            res.json(newCart)
-        } else {
-            let products=[]
-            let cartTotal=0;
-            let newCart=await new Cart({
-                products,
-                cartTotal,
-                buyer:_id
-            }).save()
-            logger.info('new cart created')
-            res.json(newCart)
-        }
-    }catch(error){
-        logger.error(`error in getting user cart funcionality ${error}`)
-    }
-})
-
-// EMPTY AND REMOVE CART
-
-const emptyCart=asyncHandler(async(req,res)=>{
-    const {_id}=req.user;
-    try{
-        const user=await User.findById(_id)
-        const cart=await Cart.findOneAndRemove({buyer:user._id})
-        res.json(cart)
-    }catch(error){
-        logger.error(`error in removing cart ${error}`)
-    }
-})
-
-// REMOVE PRODUCT FROM CART
-
-const removeFromCart=asyncHandler(async(req,res)=>{
-    const {product}=req.body
-    const {_id}=req.user
-    try{
-        /*
-        {
-            $push:{products:[{_id:cart[0]._id,quantity:1,price:prodPrice,title:prod.title}]},
-            cartTotal:(cartAlreadyExists.cartTotal+prodPrice)
-        },
-        */
-        const getProduct=await Product.findById(product)
-        const getCart=await Cart.findOne({buyer:_id})
-        const newCartTotal=getCart.cartTotal-getProduct.price
-        const userCart=await Cart.findOneAndUpdate({buyer:_id},
-            {
-             $pull: { products: {_id:product} },
-             cartTotal:newCartTotal,
-            },
-            {
-                new:true
-            },
-    )
-    res.json(userCart)
-    } catch(error){
-        logger.error(`Error removing product from cart ${error}`)
     }
 })
 
@@ -463,7 +348,9 @@ const removeFromCart=asyncHandler(async(req,res)=>{
 
 const logoutUser=(req,res)=>{
     req.session.destroy();
-    res.send({msg:"User logged out"})}
+    res.clearCookie('refreshToken',{httpOnly:true,secure:true});
+    res.clearCookie('connect.sid',{httpOnly:true,secure:true});
+    res.redirect('/')}
 
 
 module.exports={
@@ -481,9 +368,6 @@ module.exports={
     forgotPasswordToken,
     resetPassword,
     getWishList,
-    addToCart,
-    getUserCart,
-    emptyCart,
-    removeFromCart,
     logoutUser,
+    getAuthedUser,
 };

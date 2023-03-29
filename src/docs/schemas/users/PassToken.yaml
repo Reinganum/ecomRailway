@@ -1,0 +1,9 @@
+# PassToken
+components:
+  schemas:
+    Token:
+      type: string
+      properties:
+        token: string
+      example:
+         token: "345013fa0a4071c2a3d14c5421f183bc88893419f235bd8f1fa83fd542a51086"

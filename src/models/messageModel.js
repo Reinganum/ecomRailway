@@ -11,8 +11,11 @@ const messageSchema=new mongoose.Schema({
     time:{
         type:String,
     },
-    id:{
-        type:Number,
+    author_id:{
+        type:String,
+    },
+    author:{
+        type:String
     }
   },
 )

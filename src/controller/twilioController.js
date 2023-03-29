@@ -1,8 +1,8 @@
 const twilio=require('twilio')
-const config=require('../config/twilio')
+const config=require('../config/index')
 const asyncHandler=require('express-async-handler')
-const logger = require('../config/logger')
-const clientTwilio=twilio(config.token,config.pass)
+const logger = config.logger
+const clientTwilio=twilio(config.NOTIFICATIONS.whatsapp.token,config.NOTIFICATIONS.whatsapp.password)
 
 const sendMsg=asyncHandler(async(msg,)=>{
     try{

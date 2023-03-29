@@ -1,0 +1,65 @@
+# User
+components:
+  schemas:
+    User:
+      type: object
+      required:
+        - firstname
+        - lastname
+        - email
+        - mobile
+        - password
+      properties:
+        _id:
+          type: string
+          description: An auto-generated ID for the User.
+        firstname:
+          type: string
+          description: User's first name.
+        lastname:
+          type: string
+          description: User's surname.
+        email:
+          type: string
+          description: User's email address.
+        mobile:
+          type: string
+          description: User's mobile number with prefix.
+        password:
+          type: string
+          description: Hashed version of the User's password. 
+        avatar: 
+          type: string
+          description: URL of the User's avatar image. 
+        cart:
+          type: array
+          description: Cart array containing User's selected products. 
+        wishlist:
+          type: array
+          description: Wishlist array containing Users wishlisted products. 
+        role: 
+          type: string
+          description: States if the user is Admin or regular User of the webpage.
+        isBlocked:
+          type: boolean
+          description: Status of User (if user is blocked)
+        createdAt: 
+          type: string
+          description: Date in which the User was created
+        updatedAt:
+          type: string
+          description: Date in which this User was last modified
+      example:
+         _id: 4ughd73658fnsk85dh58sk
+         firstname: "Carlos"
+         lastname:  "Marambio"
+         email: carlos.marambio@gmail.com
+         mobile: "+56989045778"
+         password: "$2b$10$RhTszyZ3A/4bR5Eh5ruTAeclM3.7a172R6b43GqVmIaaDN9rqHtse"
+         avatar: "http://image.png"
+         cart: []
+         wishlist: []
+         role: admin
+         isBlocked: false
+         createdAt: "2023-03-10T15:42:01.175+00:00"
+         updatedAt: "2023-03-11T22:47:39.040+00:00"

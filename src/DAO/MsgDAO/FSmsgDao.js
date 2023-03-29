@@ -1,4 +1,4 @@
-const logger = require('../../config/logger')
+const { logger } = require('../../config/index')
 const FilesystemDAO=require('../DAOS/FilesystemDao')
 const fs=require('fs')
 const path=require('path')
@@ -19,11 +19,11 @@ class FSmsgDAO extends FilesystemDAO {
             logger.info(`Error en el constructor: ${error.message}`)
           }
     }
-    async updateNickname(newData,id){
+    async updateNickname(newData,_id){
         try{
             let users=await this.getAll()
             if( await users){
-                let userIndex=users.findIndex((user)=>{return user.id==parseInt(id)})
+                let userIndex=users.findIndex((user)=>{return user._id==String(_id)})
                 users[userIndex].nickname=newData
                 await fs.promises.writeFile(this.file,JSON.stringify(users))
             }

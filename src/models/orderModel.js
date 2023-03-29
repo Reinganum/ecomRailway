@@ -21,7 +21,6 @@ const orderSchema=new mongoose.Schema({
             "Delivered"
         ],
     },
-    // ---- PODRIA REFERENCIAR A USER O UN CART QUE IRA ASOCIADO A USER---
     orderBy:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"User"

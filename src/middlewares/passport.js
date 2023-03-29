@@ -1,9 +1,9 @@
 const asyncHandler = require('express-async-handler')
 const passport=require('passport')
 const LocalStrategy=require('passport-local').Strategy
-const User=require('../models/userModel')
+const {User}=require('../repository/repository')
 const bcrypt=require('bcrypt')
-const logger = require('../config/logger')
+const logger = require('../config/config/logger')
 
 
 // CHECK AUTHENTICATION MIDDLEWARE
@@ -32,7 +32,7 @@ const validatePassword = (user, password) => {
             done(null,user.id)
         })
         passport.deserializeUser(async(id,done)=>{
-            const user=await User.findById(id)
+            const user=await User.getById(id)
             done(null,user)
         })
         passport.use('local',
@@ -52,7 +52,7 @@ const validatePassword = (user, password) => {
                     if(!validatePassword(findUser,password))return done(null)
                     const userData={
                         id:findUser._id,
-                        name:findUser.firstname,
+                        firstname:findUser.firstname,
                         email:findUser.email,
                         cart:findUser.cart,
                         avatar:findUser.avatar
@@ -62,9 +62,8 @@ const validatePassword = (user, password) => {
                     throw new Error(error)
                 }
     })))}
-
+    
     passportInit()
-           
  module.exports={
     checkAuthenticated
 }

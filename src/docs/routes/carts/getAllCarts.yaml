@@ -1,0 +1,17 @@
+paths:
+  /cart/all:
+    get:
+      summary: Gets all the Carts in the database (requires authed user with Admin role)
+      security: 
+         - BearerAuth: []
+      tags:
+        - Carts
+      responses:
+        "200":
+          description: Gets all Carts available in the consulted database. 
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Cart'

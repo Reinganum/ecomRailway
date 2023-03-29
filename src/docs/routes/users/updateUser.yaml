@@ -1,0 +1,27 @@
+paths:
+  /user/{id}:
+    put:
+      summary: Updates a Users information
+      tags:
+        - Users
+      parameters:
+      - name: id
+        in: path
+        description: Path parameter takes the ID of the User you want to update
+        required: true
+        type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        "200":
+          description: The updated User.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        "404":
+          description: Product not found Error

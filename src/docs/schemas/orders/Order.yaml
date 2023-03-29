@@ -1,0 +1,36 @@
+# Order
+components:
+  schemas:
+    Order:
+      type: object
+      required:
+      properties:
+        _id:
+          type: string
+          description: The auto-generated id of the Order.
+        products:
+          type: array
+          description: Array of products added by the User.
+        cartTotal:
+          type: number
+          description: Total value of products added to the Cart.
+        orderStatus:
+          type: string
+          description: Current stage in the processing of the order.
+        buyer:
+          type: string
+          description: Unique ID of the User who owns the Cart. 
+        createdAt: 
+          type: string
+          description: Date in which the product was created
+        updatedAt:
+          type: string
+          description: Date in which this product was last modified
+      example:
+         _id: "640ce22c39ab33f991ca5968"
+         products: [{product: "640b41ad3fb177c35823a6a2",quantity: 3,price: 50000,_id: "640ce22c39ab33f991ca5968"}]
+         cartTotal:  150000
+         orderStatus: "Not Processed"
+         buyer: "640b4fc92a7345e776cc3098"
+         createdAt: 2023-03-11T20:18:52.272+00:00
+         updatedAt: 2023-03-11T20:18:52.272+00:00

@@ -1,10 +1,7 @@
-const Product=require('../models/productModel')
+const {Product, User}=require('../repository/repository')
 const asyncHandler=require('express-async-handler')
 const slugify=require('slugify')
-const User=require('../models/userModel')
-const logger = require('../config/logger')
-const Repo=require('../repository/repository')
-const Items=Repo.Prods
+const logger = require('../config/index').logger
 
 // CREATE NEW PRODUCT
 
@@ -14,7 +11,7 @@ const createProduct=(asyncHandler(async(req,res)=>{
         if(req.body.title){
             req.body.slug=slugify(req.body.title)
         }
-        const newProduct=await Items.save(req.body)
+        const newProduct=await Product.save(req.body)
         res.json(newProduct)
     }catch(error){
         logger.error(`error creating new product: ${error}`)
@@ -22,59 +19,70 @@ const createProduct=(asyncHandler(async(req,res)=>{
 }))
 
 
-// GET ALL PRODUCTS OR QUERY 
+// GET ALL PRODUCTS
 
 const getAllProducts=asyncHandler(async(req,res)=>{
-    try{
-        // queries with filter
+    if(Object.keys(req.query).length!==0){
         const queryObj={...req.query}
         const overlook=["page","sort","limit","fields"]
         overlook.forEach((el)=>delete queryObj[el])
         let queryStr=JSON.stringify(queryObj)
         queryStr=queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match)=>`$${match}`)
-        let query=Product.find(JSON.parse(queryStr));
-        // Sorting products
-        if(req.query.sort){
-            const sortBy=req.query.sort.split(',').join(" ")
-            console.log(sortBy)
-            query=query.sort(sortBy)
-        } else {
-            query=query.sort("-createdAt");
-        }
-        // Select query fields
-        if(req.query.fields){
-            const fields=req.query.fields.split(',').join(' ')
-            console.log(fields)
-            query=query.select(fields)
-        } else {
-            query=query.select("-__v"); //// esconder variables internas ej: -_id
-        }
-
-        // pagination of products
-        const page=req.query.page
-        const limit=req.query.limit
-        const skip=(page -1)*limit
-        query=query.skip(skip).limit(limit)
-        if(req.query.page){
-            const productCount=await Product.countDocuments();
-            // modificar para que lleve a la ultima pagina
-            if (skip>=productCount) throw new Error("page not found")
-        }
-        // const product=await query; SORTING Y PAGINADO SOLO APLICA A MONGODB VER COMO ADAPTARLO
-        const product=await Items.getAll()
+        const response=await Product.Query(queryStr)
+        res.json(response)
+    }
+    try{
+        const product=await Product.getAll()
         res.json(product).status(200)
     } catch (error){
         logger.error(`Error getting or querying products: ${error}`)
     }
 })
 
+// QUERY 
+/*
+// queries with filter
+const queryObj={...req.query}
+const overlook=["page","sort","limit","fields"]
+overlook.forEach((el)=>delete queryObj[el])
+let queryStr=JSON.stringify(queryObj)
+queryStr=queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match)=>`$${match}`)
+//let query=Product.find(JSON.parse(queryStr));
+// Sorting products
+if(req.query.sort){
+    const sortBy=req.query.sort.split(',').join(" ")
+    console.log(sortBy)
+    query=query.sort(sortBy)
+} else {
+    query=query.sort("-createdAt");
+}
+// Select query fields
+if(req.query.fields){
+    const fields=req.query.fields.split(',').join(' ')
+    console.log(fields)
+    query=query.select(fields)
+} else {
+    query=query.select("-__v"); //// esconder variables internas ej: -_id
+}
 
+// pagination of products
+const page=req.query.page
+const limit=req.query.limit
+const skip=(page -1)*limit
+query=query.skip(skip).limit(limit)
+if(req.query.page){
+    const productCount=await Product.countDocuments();
+    // modificar para que lleve a la ultima pagina
+    if (skip>=productCount) throw new Error("page not found")
+}
+// const product=await query; SORTING Y PAGINADO SOLO APLICA A MONGODB VER COMO ADAPTARLO
+*/
 // GET ONE PRODUCT
 
 const getProduct=asyncHandler(async(req,res)=>{
     const {id}=req.params
     try{
-        const product=await Items.getById(id)
+        const product=await Product.getById(id)
         if(product.error)return res.status(404).send(product)
         res.json(product).status(200)
     }catch (error){
@@ -90,7 +98,7 @@ const updateProduct=asyncHandler(async(req,res)=>{
         if(req.body.title){
             req.body.slug=slugify(req.body.title)
         }
-        const product=await Items.updateById(id,req.body)
+        const product=await Product.updateById(id,req.body)
         if(product.error)return res.status(404).send(product)
         res.json(product)
     }catch(error){
@@ -103,7 +111,7 @@ const updateProduct=asyncHandler(async(req,res)=>{
 const deleteProductById=asyncHandler(async(req,res)=>{
     const {id}=req.params;
     try{
-        const deleteProduct=await Items.deleteById(id)
+        const deleteProduct=await Product.deleteById(id)
         if(deleteProduct.error) return res.status(404).send(deleteProduct)
         res.json(deleteProduct)
     }catch (error){
@@ -116,30 +124,23 @@ const deleteProductById=asyncHandler(async(req,res)=>{
 
 const addToWishlist=asyncHandler(async (req,res)=>{
     const {_id}=req.user
-    const {prodId}=req.body
+    const {productId}=req.body
     try{
-        const user=await User.findById(_id)
-        const alreadyAdded=user.Wishlist.find((id)=>id.toString()===prodId)
-        if(alreadyAdded){
-            let user=await User.findByIdAndUpdate(_id,
-                {
-                    $pull:{Wishlist:prodId}
-                },
-                {
-                    new:true,
-                }
-            )
-            res.json(user)
+        const user=await User.getById(_id)
+        let wishlist=user.wishlist
+        const alreadyAdded=user.wishlist.findIndex((id)=>id===productId)
+        console.log(alreadyAdded)
+        if(alreadyAdded!==-1){
+            console.log("product is already in wishlist")
+            wishlist.splice(alreadyAdded,1)
+            const response=await User.updateById(_id,{wishlist})
+            console.log(response)
+            res.json(response.wishlist)
         } else {
-            let user=await User.findByIdAndUpdate(_id,
-                {
-                    $push:{Wishlist:prodId}
-                },
-                {
-                    new:true,
-                }
-            )
-            res.json(user)
+            console.log("product was not in wishlist we will push it now")
+            wishlist.push(productId)
+            const response=await User.updateById(_id,{wishlist})
+            res.json(response.wishlist)
         }
     } catch (error){
         logger.error(`Product not updated in user wishlist: ${error}`)
@@ -151,39 +152,15 @@ const addToWishlist=asyncHandler(async (req,res)=>{
 const rating = asyncHandler(async(req,res)=>{
     const {_id}=req.user
     const {star,prodId}=req.body
+    console.log(star,prodId)
     try{
-        
-        const product=await Product.findById(prodId)
-        let alreadyRated=product.ratings.find((userId)=>userId.postedBy.toString()===_id.toString())
-        if (alreadyRated){
-            const updateRating=await Product.updateOne({
-                ratings:{$elemMatch:alreadyRated},
-            }, 
-            {
-                $set:{"ratings.$.star":star}
-            },
-            {
-                new:true
-            })
-        }else{
-            const rateProduct=await Product.findByIdAndUpdate(prodId, {
-                $push:{
-                    ratings:
-                    {
-                        "star":star,
-                        postedBy:_id
-                    }
-                }
-            },{new:true})
-        }
-        let foundProduct=await Product.findById(prodId)
-        let amountOfRatings=foundProduct.ratings.length
-        let ratingSum=foundProduct.ratings
-        .map((rating)=>rating.star)
-        .reduce((a,b)=>a+b,0)
-        let actualRating=ratingSum/amountOfRatings
-        let updatedProduct=await Product.findByIdAndUpdate(prodId, {totalRating:actualRating},{new:true})
-        res.json(updatedProduct)
+        const product=await Product.getById(prodId)
+        const user=await User.getById(_id)
+        console.log(product.ratings)
+        product.ratings.push({star,ratedBy:user._id})
+        const response=await Product.updateById(prodId,{ratings:product.ratings})
+        console.log(response)
+        res.json(response)
     } catch (error){
         logger.error(`Error scoring product: ${error}`)
     }
@@ -192,13 +169,23 @@ const rating = asyncHandler(async(req,res)=>{
 
 const deleteAllProducts=asyncHandler(async(req,res)=>{
     try{
-        const response = await Items.deleteAll()
+        const response = await Product.deleteAll()
         res.json(response)
     }catch (error){
         logger.error(`Error scoring product: ${error}`)
     }
 })
 
+const getProductByCategory=asyncHandler(async(req,res)=>{
+    const {category}=req.params;
+    console.log(category)
+    try{
+        const response = await Product.find({category:category})
+        res.json(response)
+    }catch (error){
+        logger.error(`Error getting product by category: ${error}`)
+    }
+})
 
 module.exports={
     deleteAllProducts,
@@ -208,5 +195,6 @@ module.exports={
     getProduct,
     deleteProductById,
     addToWishlist,
-    rating
+    rating,
+    getProductByCategory
 }

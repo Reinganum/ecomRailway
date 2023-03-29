@@ -1,0 +1,35 @@
+# NewUser
+components:
+  requestBodies:
+    NewUser:
+      type: object
+      required:
+        - firstname
+        - lastname
+        - email
+        - mobile
+        - password 
+      properties:
+        firstname:
+          type: string
+          description: User's first name.
+        lastname:
+          type: string
+          description: User's surname.
+        email:
+          type: string
+          description: User's email address.
+        mobile:
+          type: number
+          description: User's mobile number without prefix.
+        password:
+          type: string
+          description: Username password without hashing
+      example:
+         firstname: "Benito"
+         lastname: "Baranda"
+         email: benito.baranda@gmail.com
+         mobile: 939056443
+         password: Covid23
+
+        

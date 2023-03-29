@@ -1,11 +1,12 @@
-const Category=require('../models/productCategoryModel')
+const {Category}=require('../repository/repository')
 const asyncHandler=require('express-async-handler')
 const validateMongoDBID=require('../utils/validateMongoDbID')
-const logger = require('../config/logger')
+const {logger}=require('../config/index')
 
 const createCategory=asyncHandler(async(req,res)=>{
     try{
-        const newCategory=await Category.create(req.body)
+        const newCategory=await Category.save(req.body)
+        console.log(newCategory)
         res.json(newCategory)
     }catch (error){
         logger.error(error)
@@ -34,7 +35,7 @@ const deleteCategory=asyncHandler(async(req,res)=>{
 
 const getAllCategories=asyncHandler(async(req,res)=>{
     try{
-        const getAllCategories=await Category.find()
+        const getAllCategories=await Category.getAll()
         res.json(getAllCategories)
     } catch(error){
         logger.error(error)

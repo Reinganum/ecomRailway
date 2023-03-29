@@ -1,0 +1,18 @@
+# UserLogin
+components:
+  requestBodies:
+    UserLogin:
+      type: object
+      required:
+        - email
+        - password 
+      properties:
+        email:
+          type: string
+          description: User's email address.
+        password:
+          type: string
+          description: Username password without hashing
+      example:
+         email: benito.baranda@gmail.com
+         password: Covid23

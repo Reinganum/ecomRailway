@@ -1,0 +1,15 @@
+paths:
+  /cart:
+    get:
+      summary: Gets user's Cart through ID stored in auth token.
+      security: 
+         - BearerAuth: []
+      tags:
+        - Carts
+      responses:
+        "201":
+          description: The authed user's Cart.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'

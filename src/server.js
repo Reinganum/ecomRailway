@@ -1,64 +1,56 @@
 const express=require('express')
-// GRAPHQL
-const { graphqlHTTP } = require('express-graphql');
-const schema=require('./GraphQL/schema')
-const root=require('./GraphQL/resolver')
-//
 const app=express()
 const dotenv=require('dotenv').config()
-const db=require('./config/DBconnect');
 const { errorHandler, notFound } = require('./middlewares/errorHandler');
 const authRouter=require('./routes/userRoute')
 const productRouter=require('./routes/productRoute')
 const cartRouter=require('./routes/cartRoute')
 const mainRouter=require('./routes/mainRoute')
 const cookieParser=require('cookie-parser')
-const logger = require('./config/logger')
 const categoryRouter=require('./routes/categoryRoute')
-const Mongostore=require('connect-mongo')
 const session=require('express-session')
-const passport = require('passport');
-const args = require('./config/argsConfig');
-const runServer = require('./config/cluster');
+const args = require('./config/config/argsConfig')
+const runServer = require('./config/config/cluster');
 const {engine} = require('express-handlebars');
-const {newUser,changeUser,newMessage,newItem}=require('./controller/chatController')
-const Repo=require('./repository/repository')
+const {newUser,newMessage,userDisconnected}=require('./controller/chatController')
+const config=require('./config')
+const logger=require('./config/config/logger')
+const orderRouter=require('./routes/orderRoute')
 const cors=require('cors')
 
-app.use(cors({origin:`http://localhost:${process.env.PORT}`}))
-// connection to MongoDB
+// Swagger
 
-const productSchema=require('./models/joiSchemas/joi') 
-db()
-
+const swaggerUI=require('swagger-ui-express')
+const swaggerJsdoc=require('swagger-jsdoc')
+const options={
+    definition:{
+        openapi:'3.0.0',
+        security: [ { bearerAuth: [] } ],
+        info:{
+            title:'API testing for eCommerce Project',
+            description:'a simple CRUD API application made with Swagger',
+        },
+    },
+    apis:['./src/docs/**/*.yaml']
+}
+const specs=swaggerJsdoc(options)
+app.use('/api-docs',swaggerUI.serve,swaggerUI.setup(specs))
+//    
+const corsOptions = {
+    origin: ["http://localhost:3000","http://localhost:5000"],
+    credentials: true,
+  }
+app.use(cors(corsOptions))
 
 // body parser middleware
 
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
 app.use(cookieParser())
-
-// passport
-app.use(session({
-    store:Mongostore.create({
-        mongoUrl:process.env.MONGO_URI,
-        mongoOptions:{useNewUrlParser:true,useUnifiedTopology:true},
-        ttl:60,
-        dbName:process.env.MONGO_DB_NAME,
-        collectionName:'sessions'
-    }),
-    secret:"secret",
-    resave:false,
-    saveUninitialized:false,
-    cookie : {
-        maxAge: 60000
-    }
-}))
-
-app.use(passport.initialize())
-app.use(passport.session())
+app.use(session(config.SESSIONSTORAGE.STORAGE))
 
 // HANDLEBARS
+
 app.engine('.hbs', engine({
     extname:'.hbs'
 }));
@@ -67,24 +59,16 @@ app.set('views',process.cwd()+'/public/views')
 app.use(express.static('public'))
 app.use(express.static('public/views'))
 
-// GRAPHQL
-app.use(
-  '/graphql',
-  graphqlHTTP({
-    schema: schema,
-    rootValue: root,
-    graphiql: true,
-  })
-)
-// SESSION 
 
 // routers
 
-app.use('/api/user', authRouter)
-app.use('/api/product', productRouter)
-app.use('/api/cart', cartRouter)
-app.use('/api/category', categoryRouter)
+app.use('/user', authRouter)
+app.use('/product', productRouter)
+app.use('/cart', cartRouter)
+app.use('/category', categoryRouter)
+app.use('/order', orderRouter)
 app.use('/', mainRouter)
+
 
 // main routes 
 app.get('*', (req, res) => {
@@ -95,25 +79,22 @@ app.get('*', (req, res) => {
   
 // error handling middlewares
 
-//app.use(errorHandler)
-//app.use(notFound)
+app.use(errorHandler)
+app.use(notFound)
 
 const httpServer=runServer(app,args)
 const { Server } = require("socket.io");
-const io = new Server(httpServer)
-
+const io = new Server(httpServer, {
+    cors:{
+        origin:"http://localhost:3000"
+    }
+})
 io.on('connection', async (socket)=>{
     newUser(socket,io)
-
+    
     socket.on('msg',(newMsg)=>{
         newMessage(socket,io,newMsg)
     })
-
-    socket.on('change-user',(newName)=>{
-        changeUser(socket,io,newName)
-    })
-
-    socket.emit('items', await Repo.Prods.getAll())
 
     socket.on('typing',(user)=>{
         socket.broadcast.emit('typing',user)
@@ -121,6 +102,13 @@ io.on('connection', async (socket)=>{
     socket.on('newItem',(itemData)=>{
         newItem(socket,io,itemData)
     })
+    socket.on("disconnect",async ()=>{
+        console.log(`User disconnected: ${socket.id}`,
+        userDisconnected(socket.id)
+        )
+    })
 })
+
+config.DB.CONNECT()
 
 module.exports=app

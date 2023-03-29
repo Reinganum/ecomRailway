@@ -1,0 +1,45 @@
+# Product
+components:
+  schemas:
+    Product:
+      type: object
+      required:
+        - title
+        - description
+        - price
+      properties:
+        _id:
+          type: string
+          description: The auto-generated id of the product.
+        title:
+          type: string
+          description: The name of the product.
+        slug:
+          type: string
+          description: title stripped of whitespaces
+        description:
+          type: string
+          description: brief description of the product
+        price:
+          type: number
+          description: The price of the product.
+        thumbnail:
+          type: string
+          description: URL of the image of the product
+        stock: 
+          type: number
+          description: The stock of the product
+        totalRating: 
+          type: number
+          description: The ratings that the users have given this product
+        createdAt: 
+          type: string
+          description: Date in which the product was created
+        updatedAt:
+          type: string
+          description: Date in which this product was last modified
+      example:
+         _id: 4ughd73658fnsk85dh58sk
+         title: "El largo viaje a la felicidad de Mama Kusters"
+         description:  "pelicula alemana antigua"
+         price: 35000

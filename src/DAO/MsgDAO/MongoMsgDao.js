@@ -1,4 +1,4 @@
-const logger = require('../../config/logger')
+const { logger } = require('../../config/index')
 const MongoDao=require('../DAOS/mongoDAO')
 
 class MongoMsgDao extends MongoDao{

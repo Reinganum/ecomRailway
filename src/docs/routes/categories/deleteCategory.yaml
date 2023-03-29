@@ -1,0 +1,19 @@
+paths:
+  /category/{id}:
+    delete:
+      summary: Creates a new User
+      tags:
+        - Categories
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/requestBodies/NewUser'
+      responses:
+        "201":
+          description: The created product.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'

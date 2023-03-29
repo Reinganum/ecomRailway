@@ -1,0 +1,21 @@
+paths:
+  /user/{id}:
+    delete:
+      summary: Removes a User by its unique ID.
+      tags:
+        - Users
+      parameters:
+      - name: id
+        in: path
+        description: Path parameter takes the ID of User you want to remove.
+        required: true
+        type: string
+      responses:
+        "200":
+          description: The removed User.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        "404":
+          description: Product not found Error

@@ -1,13 +1,14 @@
 const nodemailer=require('nodemailer')
 const asyncHandler=require('express-async-handler')
+const config=require('../config/index')
 
 const sendEmail=asyncHandler(async(data,req,res)=>{
     const transporter = nodemailer.createTransport({
         host: 'smtp.ethereal.email',
         port: 587,
         auth: {
-            user: process.env.EMAIL_USERNAME,
-            pass: process.env.EMAIL_PASSWORD
+            user: config.NOTIFICATIONS.email.username,
+            pass: config.NOTIFICATIONS.email.password
         }
     });
       // send mail with defined transport object
@@ -19,13 +20,5 @@ const sendEmail=asyncHandler(async(data,req,res)=>{
         html: data.html, // html body
       });
 })
-
-/*
-datos mail ENV
-
-EMAIL_NAME=Tomasa Klocko
-EMAIL_USERNAME=tomasa.klocko84@ethereal.email
-EMAIL_PASSWORD=YJueXQgRSHYqvYX2BF
-*/
 
 module.exports=sendEmail
