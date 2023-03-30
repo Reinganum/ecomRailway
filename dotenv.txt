@@ -1,5 +1,5 @@
 PORT=5000
-SELECTED_DATABASE=fs
+SELECTED_DATABASE=mongo
 MONGO_URI=mongodb+srv://harijanF:NGC654e.@cluster0.mdmbmnr.mongodb.net/?retryWrites=true
 MONGO_DB_NAME=segundaEntrega
 JWT_SECRET=frutillita

@@ -28,7 +28,7 @@ const newMessage=async(socket,io,newMsg)=>{
     let timestamp = `${currentDate.getHours()}`+":"+
     `${String(currentDate.getMinutes()).length===2?currentDate.getMinutes():'0'+currentDate.getMinutes()}`+":"+
     `${String(currentDate.getSeconds()).length===2?currentDate.getSeconds():'0'+currentDate.getSeconds()}`;
-    await Message.save({socketID:socket.id,msg:newMsg.msg,time:timestamp,author:newMsg.author,author_id:newMsg.author_id})
+    await Message.save({socketID:socket.id,msg:newMsg.msg,time:timestamp,author:newMsg.author,author_id:newMsg.author_id,email:newMsg.email})
     const allMsgs = await Message.getAll()
     io.sockets.emit('allMsgs', allMsgs)
 }

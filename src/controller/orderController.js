@@ -19,6 +19,7 @@ const createOrder=asyncHandler(async(req,res,next)=>{
                 currency:"clp",
             },
             orderBy:user._id,
+            deliveryAddress:user.address,
             orderStatus:"Processing payment"
         });
         let orderString=JSON.stringify(newOrder)

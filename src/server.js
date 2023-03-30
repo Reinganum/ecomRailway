@@ -109,6 +109,7 @@ io.on('connection', async (socket)=>{
     })
 })
 
-config.DB.CONNECT()
+if (config.DB.DB_TYPE==='mongo'){
+    return config.DB.CONNECT()}
 
 module.exports=app

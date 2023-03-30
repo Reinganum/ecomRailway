@@ -12,13 +12,13 @@ const logger=require('../config/config/logger')
 // REGISTER USER 
 
 const createUser=asyncHandler(async(req,res)=>{
-    const {email,password,firstname,lastname,mobile,avatar,role}=req.body;
+    const {email,password,firstname,lastname,mobile,avatar,role,address}=req.body;
     const findUser=await User.findOne({email:email});
     if(!findUser){
         const salt=bcrypt.genSaltSync(10);
         const hashedPass=await bcrypt.hash(password, salt)
         const newUser=await User.save({
-            email,password:hashedPass,firstname,lastname,mobile,avatar,role,wishlist:[],ratings:[]
+            email,password:hashedPass,firstname,lastname,mobile,avatar,role,wishlist:[],ratings:[],address
         })
         const data={
             to:email,
@@ -64,6 +64,7 @@ const loginUser=asyncHandler(async (req,res)=>{
                     avatar:findUser?.avatar,
                     mobile:findUser?.mobile,
                     role:findUser?.role,
+                    address:findUser?.address,
                     accessToken:generateToken(findUser?._id)
                 })
                 logger.info("login successful (JWT system)")}
@@ -80,6 +81,7 @@ const loginUser=asyncHandler(async (req,res)=>{
                         avatar:findUser?.avatar,
                         mobile:findUser?.mobile,
                         role:findUser?.role,
+                        address:findUser?.address,
                         accessToken:generateToken(findUser?._id),
                     })
                     logger.info("login successful (Session system)")
@@ -96,14 +98,14 @@ const loginUser=asyncHandler(async (req,res)=>{
 // Handle refresh token
 
 const handleRefreshToken=asyncHandler(async(req,res)=>{
-    console.log("handleRefresh called")
     const cookie=req.cookies
     if(!cookie?.refreshToken)return res.sendStatus(401)
+    console.log("refresh token called")
     const refreshToken=cookie.refreshToken
     const user=await User.findOne({refreshToken})
     if(!user)res.sendStatus(403)
     jwt.verify(refreshToken,config.JWT.refreshSecret, (error, decoded)=>{
-        if (error || decoded.id !== user._id){
+        if (error || decoded.id!==user._id.toString()){
             logger.warn('error in refresh token')
             return res.sendStatus(403)
         } else {

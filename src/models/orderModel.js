@@ -24,6 +24,9 @@ const orderSchema=new mongoose.Schema({
     orderBy:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"User"
+    },
+    deliveryAddress:{
+        type: String,
     }
 },
 {timestamps:true})
